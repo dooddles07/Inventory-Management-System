@@ -1,0 +1,188 @@
+@import "tailwindcss";
+
+/*
+  STOCKROOM design tokens.
+  Palette roles, not palette names: navy is the ground, #2196F3 is interaction only.
+  Every text pairing below is verified at 4.5:1 or better; see docs/DESIGN-SYSTEM.md.
+*/
+
+@theme {
+  /* Ground - navy is a surface, not an accent */
+  --color-navy-900: #06203f;
+  --color-navy-800: #0a3372;
+  --color-navy-700: #0d47a1;
+  --color-navy-600: #1259c4;
+
+  /* Interaction - fills, rings and indicators only, never body text on light */
+  --color-blue-700: #0a5fb0;
+  --color-blue-500: #2196f3;
+  --color-blue-300: #90caf9;
+  --color-blue-100: #e3f2fd;
+  --color-blue-50: #f2f8fe;
+
+  /* Neutrals, blue-tinted throughout - no true gray anywhere */
+  --color-ink-900: #0a1929;
+  --color-ink-700: #24384d;
+  --color-ink-500: #566c82;
+  --color-ink-300: #8fa3b8;
+  --color-line: #dde5ee;
+  --color-line-strong: #c3d1e0;
+  --color-paper: #edf2f9;
+  --color-surface: #ffffff;
+
+  /* On-navy foregrounds */
+  --color-on-navy: #f2f7fd;
+  --color-on-navy-muted: #a9c6e8;
+  --color-navy-line: #1c5bb8;
+
+  /* Stock status - four blues cannot encode stock health */
+  --color-ok: #1b806a;
+  --color-ok-wash: #e4f2ee;
+  --color-low: #b45309;
+  --color-low-wash: #fbeee0;
+  --color-out: #b3261e;
+  --color-out-wash: #f9e7e5;
+
+  /* Type */
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, monospace;
+
+  /* Tight radii - this is label stock and rack signage, not a consumer app */
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
+
+  /* One card shadow, one popover shadow. No stacked glows. */
+  --shadow-card: 0 1px 2px rgba(10, 25, 41, 0.05), 0 1px 1px rgba(10, 25, 41, 0.03);
+  --shadow-pop: 0 12px 32px -8px rgba(10, 25, 41, 0.2);
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink-900);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Focus ring flips on navy: #2196F3 only reaches 2.6:1 there, #90CAF9 reaches 4.6:1 */
+  :focus-visible {
+    outline: 2px solid var(--color-blue-500);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  .on-navy :focus-visible,
+  .on-navy:focus-visible {
+    outline-color: var(--color-blue-300);
+  }
+
+  ::selection {
+    background: var(--color-blue-100);
+    color: var(--color-navy-900);
+  }
+
+  .on-navy ::selection {
+    background: var(--color-blue-300);
+    color: var(--color-navy-900);
+  }
+
+  /* Numerics never reflow when they tick */
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+}
+
+@layer components {
+  /* Display type earns its character from Archivo's width axis, not from a novelty face */
+  .type-display {
+    font-family: var(--font-sans);
+    font-variation-settings: "wdth" 118, "wght" 700;
+    line-height: 0.96;
+    letter-spacing: -0.032em;
+  }
+
+  .type-title {
+    font-family: var(--font-sans);
+    font-variation-settings: "wdth" 108, "wght" 650;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  /* Rack signage: aisle codes, SKUs, section markers */
+  .type-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+
+  .type-data {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Thermal label edge - the perforated tear line on printed stock */
+  .tear-edge {
+    --tear: 5px;
+    mask-image: radial-gradient(circle var(--tear) at 0 50%, transparent 98%, #000 100%),
+      radial-gradient(circle var(--tear) at 100% 50%, transparent 98%, #000 100%);
+    mask-composite: intersect;
+    -webkit-mask-composite: source-in;
+  }
+}
+
+@keyframes bin-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* 288 bins fill in on load. CSS keyframes with an inline delay, because 288 motion nodes is not worth it. */
+.bin-cell-in {
+  animation: bin-in 0.44s var(--ease-out-quint) both;
+  transform-origin: bottom;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bin-cell-in {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
