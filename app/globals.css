@@ -126,12 +126,22 @@
     letter-spacing: -0.02em;
   }
 
-  /* Rack signage: aisle codes, SKUs, section markers */
+  /* Rack signage. Mono is reserved for codes that are read character by character. */
   .type-label {
     font-family: var(--font-mono);
     font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+
+  /* Interface labels. Sans, because a column header is not a measurement. */
+  .type-meta {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
     line-height: 1.2;
   }

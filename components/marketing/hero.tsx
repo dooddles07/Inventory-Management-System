@@ -13,9 +13,7 @@ export function Hero({ floor, stats }: HeroProps) {
     <section className="on-navy bg-navy-700 text-on-navy">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.06fr)] lg:items-center lg:gap-14 lg:py-20">
         <div>
-          <p className="type-label text-blue-300">A-01 &middot; Warehouse floor</p>
-
-          <h1 className="type-display mt-5 text-[clamp(2.125rem,4.4vw,3.375rem)]">
+          <h1 className="type-display text-[clamp(2.125rem,4.4vw,3.375rem)]">
             Know what&rsquo;s in stock,
             <span className="mt-1 block text-blue-300">and where it is.</span>
           </h1>
@@ -39,46 +37,26 @@ export function Hero({ floor, stats }: HeroProps) {
             </ButtonLink>
           </div>
 
-          <dl className="mt-10 grid max-w-md grid-cols-3 border-t border-[#1c5bb8] pt-5">
-            <Stat label="Parts tracked" value={formatUnits(stats.skus)} />
-            <Stat
-              label="Bins in use"
-              value={`${formatUnits(stats.binsUsed)}/${formatUnits(stats.totalBins)}`}
-              bordered
-            />
-            <Stat label="Need restocking" value={formatUnits(stats.belowReorder)} bordered accent />
-          </dl>
+          {/* The counts read as a sentence about this warehouse, not as a metric row. */}
+          <p className="mt-9 max-w-md border-t border-[#1c5bb8] pt-5 text-[0.9375rem] leading-relaxed text-on-navy-muted">
+            This warehouse holds{" "}
+            <strong className="type-data font-medium text-on-navy" data-numeric>
+              {formatUnits(stats.skus)}
+            </strong>{" "}
+            parts across{" "}
+            <strong className="type-data font-medium text-on-navy" data-numeric>
+              {formatUnits(stats.binsUsed)}
+            </strong>{" "}
+            bins.{" "}
+            <strong className="type-data font-medium text-blue-300" data-numeric>
+              {formatUnits(stats.belowReorder)}
+            </strong>{" "}
+            of them need restocking today.
+          </p>
         </div>
 
         <FloorMap floor={floor} totalBins={stats.totalBins} />
       </div>
     </section>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  bordered,
-  accent,
-}: {
-  label: string;
-  value: string;
-  bordered?: boolean;
-  accent?: boolean;
-}) {
-  return (
-    <div className={bordered ? "border-l border-[#1c5bb8] pl-4" : "pr-4"}>
-      {/* Reserves two label lines on narrow screens so the three readouts share a baseline. */}
-      <dt className="type-label min-h-[2.1em] text-[0.625rem] text-on-navy-muted sm:min-h-0">
-        {label}
-      </dt>
-      <dd
-        className={`type-data mt-1.5 text-[1.375rem] ${accent ? "text-blue-300" : "text-on-navy"}`}
-        data-numeric
-      >
-        {value}
-      </dd>
-    </div>
   );
 }

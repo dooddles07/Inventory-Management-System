@@ -7,7 +7,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
-  useRef,
+  useState,
   type ReactNode,
 } from "react";
 import { LocalInventoryRepository } from "@/lib/inventory/local-repository";
@@ -52,9 +52,8 @@ interface InventoryValue extends State {
 const InventoryContext = createContext<InventoryValue | null>(null);
 
 export function InventoryProvider({ children }: { children: ReactNode }) {
-  const repositoryRef = useRef<InventoryRepository | null>(null);
-  if (!repositoryRef.current) repositoryRef.current = new LocalInventoryRepository();
-  const repository = repositoryRef.current;
+  // Lazy state, not a ref: the repository is created once and never read during render.
+  const [repository] = useState<InventoryRepository>(() => new LocalInventoryRepository());
 
   const [state, dispatch] = useReducer(reducer, {
     snapshot: EMPTY,

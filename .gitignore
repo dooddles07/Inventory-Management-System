@@ -14,8 +14,10 @@ next-env.d.ts
 
 # Verification scratch - screenshots and Playwright output
 /m1-*.png
+/v-*.png
 /page-*.png
 .playwright-mcp/
+eslint-report.json
 
 # Working notes, not part of the shipped project
 docs/ACTIVITY-LOG.md

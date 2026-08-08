@@ -64,11 +64,18 @@ export interface ReorderLine {
   supplier?: Supplier;
   shortfall: number;
   coverDays: number | null;
+  urgency: number;
 }
 
+const ASSUMED_LEAD_DAYS = 7;
+
 /**
- * Everything at or below its reorder point, worst first.
- * Out of stock outranks low, then larger shortfall, then longer supplier lead time.
+ * Everything at or below its reorder point, most urgent first.
+ *
+ * Sorting out-of-stock to the top first sounds right and reads badly: seventeen parts
+ * all showing zero, in no useful order. Urgency is how much is missing multiplied by
+ * how long the supplier takes, doubled once a part has actually run out. A part that is
+ * empty with a three-week supplier outranks one that is empty with a three-day supplier.
  */
 export function reorderQueue(items: Item[], suppliers: Supplier[], limit?: number): ReorderLine[] {
   const supplierById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
@@ -78,20 +85,17 @@ export function reorderQueue(items: Item[], suppliers: Supplier[], limit?: numbe
     .map((item) => {
       const supplier = supplierById.get(item.supplierId);
       const target = item.reorderPoint + item.safetyStock;
+      const shortfall = Math.max(0, target - item.qty);
+      const leadDays = supplier?.leadTimeDays ?? ASSUMED_LEAD_DAYS;
       return {
         item,
         supplier,
-        shortfall: Math.max(0, target - item.qty),
+        shortfall,
         coverDays: supplier ? supplier.leadTimeDays : null,
+        urgency: shortfall * leadDays * (item.qty <= 0 ? 2 : 1),
       };
     })
-    .sort((a, b) => {
-      const aOut = a.item.qty <= 0 ? 1 : 0;
-      const bOut = b.item.qty <= 0 ? 1 : 0;
-      if (aOut !== bOut) return bOut - aOut;
-      if (b.shortfall !== a.shortfall) return b.shortfall - a.shortfall;
-      return (b.coverDays ?? 0) - (a.coverDays ?? 0);
-    });
+    .sort((a, b) => b.urgency - a.urgency || a.item.name.localeCompare(b.item.name));
 
   return limit ? lines.slice(0, limit) : lines;
 }
