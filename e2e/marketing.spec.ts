@@ -26,7 +26,10 @@ test.describe("landing page", () => {
 
   test("the pricing section admits it does not bill anyone", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("#pricing")).toContainText("none of this bills you");
+
+    const pricing = page.locator("#pricing");
+    await expect(pricing).toContainText("portfolio project");
+    await expect(pricing).toContainText(/bills? (you|nobody)/i);
   });
 
   test("the proof table is rendered, not a screenshot", async ({ page }) => {

@@ -7,8 +7,29 @@ versions follow [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Printable shelf labels.** A Print button in the part drawer, and a print stylesheet
+  that takes the label and nothing else: part name, bin address, Code 39 barcode, SKU, on
+  62mm stock. The marketing page had promised this for a while.
+- Quiet zones on the barcode, ten narrow widths either side. Without them a scanner will
+  not lock on to the start character, which made "a scanner pointed at this reads back the
+  SKU" optimistic.
 - Project documentation: `PRD.md`, `ARCHITECTURE.md`, `DATABASE.md`, `API.md`, `DESIGN.md`.
 - CI status badge and a live link in the README.
+
+### Fixed
+
+- **Moving a part to another bin was never recorded.** `updateItem` merged the change
+  blindly, so a bin edit through the form vanished from a log that claims to hold every
+  movement. It now writes a `transfer` with the old and new bins, in the repository rather
+  than the form, so no caller can bypass it.
+- The print layout put the label wherever the drawer's spring animation had stopped: a
+  transformed ancestor re-anchors `position: fixed` to itself. The stylesheet clears it.
+
+### Changed
+
+- The pricing disclaimer no longer says the demo has "everything switched on", which was
+  untrue of CSV import, API access and multi-site transfers. It says the tiers describe
+  where the product would go rather than what is built.
 
 ## [0.1.0] - 2026-08-09
 

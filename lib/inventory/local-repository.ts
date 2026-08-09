@@ -94,15 +94,34 @@ export class LocalInventoryRepository implements InventoryRepository {
     const index = snapshot.items.findIndex((item) => item.id === id);
     if (index === -1) throw new Error(`No item with id ${id}`);
 
-    const updated: Item = {
-      ...snapshot.items[index],
-      ...patch,
-      id,
-      updatedAt: new Date().toISOString(),
-    };
+    const current = snapshot.items[index];
+    const at = new Date().toISOString();
+    const updated: Item = { ...current, ...patch, id, updatedAt: at };
+
     const items = [...snapshot.items];
     items[index] = updated;
-    this.write({ ...snapshot, items });
+
+    // Moving a part to another bin is a movement, whoever asked for it. Logging it here
+    // rather than in the form means the history cannot be bypassed by editing the field.
+    const moved = updated.bin !== current.bin;
+    const movements = moved
+      ? [
+          {
+            id: nextId("mov", snapshot.movements),
+            itemId: id,
+            type: "transfer" as const,
+            qty: 0,
+            fromBin: current.bin,
+            toBin: updated.bin,
+            reference: "MANUAL",
+            at,
+            by: "you",
+          } satisfies Movement,
+          ...snapshot.movements,
+        ]
+      : snapshot.movements;
+
+    this.write({ ...snapshot, items, movements });
     return updated;
   }
 

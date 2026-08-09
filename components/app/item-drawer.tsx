@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Printer, Trash2 } from "lucide-react";
 import { Barcode } from "@/components/app/barcode";
 import { StatusPill } from "@/components/app/status-pill";
 import { StockBar } from "@/components/app/stock-bar";
@@ -377,8 +377,28 @@ export function ItemDrawer({
           )}
 
           {form.sku.trim() && (
-            <div className="rounded-sm border border-line bg-paper px-4 py-3">
-              <p className="type-meta mb-2 text-[0.625rem] text-ink-500">Shelf label</p>
+            <div data-shelf-label className="rounded-sm border border-line bg-paper px-4 py-3">
+              <div data-print-hide className="mb-2 flex items-center justify-between gap-3">
+                <p className="type-meta text-[0.625rem] text-ink-500">Shelf label</p>
+                <Button
+                  data-print-hide
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.print()}
+                  title="Print this label on its own"
+                >
+                  <Printer size={14} strokeWidth={2} aria-hidden="true" />
+                  Print
+                </Button>
+              </div>
+
+              {/* What someone reads off a rack: the name, then the address, then the code. */}
+              <p className="text-center text-[0.875rem] text-ink-900">
+                {form.name.trim() || "Unnamed part"}
+              </p>
+              <p className="type-data mb-2 text-center text-[0.9375rem] text-ink-900">
+                {form.bin.trim().toUpperCase() || "No bin"}
+              </p>
               <Barcode value={form.sku.trim()} />
               <p className="type-data mt-1.5 text-center text-[0.75rem] tracking-[0.18em] text-ink-700">
                 {form.sku.trim().toUpperCase()}

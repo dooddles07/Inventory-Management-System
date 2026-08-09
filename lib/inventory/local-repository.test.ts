@@ -112,6 +112,44 @@ describe("updateItem", () => {
       /No item with id/,
     );
   });
+
+  it("logs a move when the bin changes, so history cannot be bypassed by the form", async () => {
+    const repository = new LocalInventoryRepository();
+    const created = await repository.createItem(draft({ bin: "A-01-01" }));
+
+    await repository.updateItem(created.id, { bin: "F-08-06" });
+    const snapshot = await repository.load();
+
+    const moves = snapshot.movements.filter(
+      (movement) => movement.itemId === created.id && movement.type === "transfer",
+    );
+
+    expect(moves).toHaveLength(1);
+    expect(moves[0]).toMatchObject({
+      qty: 0,
+      fromBin: "A-01-01",
+      toBin: "F-08-06",
+    });
+  });
+
+  it("logs nothing when an edit leaves the bin alone", async () => {
+    const repository = new LocalInventoryRepository();
+    const created = await repository.createItem(draft({ bin: "A-01-01" }));
+    const before = (await repository.load()).movements.length;
+
+    await repository.updateItem(created.id, { name: "Renamed", unitCost: 999 });
+
+    expect((await repository.load()).movements).toHaveLength(before);
+  });
+
+  it("counts a move as a move, not as stock arriving or leaving", async () => {
+    const repository = new LocalInventoryRepository();
+    const created = await repository.createItem(draft({ qty: 42, bin: "B-02-02" }));
+
+    const updated = await repository.updateItem(created.id, { bin: "C-03-03" });
+
+    expect(updated.qty).toBe(42);
+  });
 });
 
 describe("adjust", () => {

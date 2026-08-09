@@ -61,8 +61,9 @@ export function Pricing() {
           cancel whenever; nothing is locked in.
         </p>
         <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-ink-500">
-          Stockroom is a portfolio project, so none of this bills you. All three buttons
-          open the same demo, with everything switched on.
+          Stockroom is a portfolio project. Nothing here bills you, every button opens the
+          same demo, and the tiers describe where the product would go rather than what is
+          built today.
         </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">

@@ -22,6 +22,10 @@ const NARROW = 1;
 const WIDE = 3;
 const GAP = 1;
 
+// Code 39 needs a clear margin either side or a scanner will not lock on to the start
+// character. Ten narrow widths is the usual minimum.
+const QUIET = NARROW * 10;
+
 export function Barcode({ value, height = 40 }: { value: string; height?: number }) {
   const text = value.toUpperCase();
   const encodable = [...text].every((character) => character in PATTERNS);
@@ -44,7 +48,7 @@ export function Barcode({ value, height = 40 }: { value: string; height?: number
 
   return (
     <svg
-      viewBox={`0 0 ${total} ${height}`}
+      viewBox={`${-QUIET} 0 ${total + QUIET * 2} ${height}`}
       preserveAspectRatio="none"
       role="img"
       aria-label={`Code 39 barcode for ${text}`}

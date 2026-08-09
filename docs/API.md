@@ -46,6 +46,10 @@ Shallow merge, restamps `updatedAt`. Throws `No item with id {id}` if it is gone
 Does not change `qty` in practice - the drawer's edit form does not submit it. Quantity
 moves through `adjust`, so every change has a movement behind it.
 
+**Changing `bin` logs a `transfer`**, with `qty: 0`, `fromBin` and `toBin` set, and the
+reference `MANUAL`. Logging it here rather than in the form means the history cannot be
+bypassed by editing the field.
+
 ### `deleteItems(ids)`
 
 Removes the parts and their movements together. Unknown ids are ignored rather than

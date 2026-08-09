@@ -189,3 +189,56 @@
     scroll-behavior: auto !important;
   }
 }
+
+/*
+  Printing a shelf label prints the label, not the screen behind it. Visibility rather
+  than display, because collapsing the ancestors would take the SVG's layout with them.
+*/
+@media print {
+  body {
+    background: #fff;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  [data-shelf-label],
+  [data-shelf-label] * {
+    visibility: visible;
+  }
+
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  /*
+    The drawer keeps a transform from its spring animation, and a transformed ancestor
+    re-anchors position: fixed to itself. Clearing it puts the label on the page origin
+    instead of wherever the panel happened to stop.
+  */
+  [role="dialog"] {
+    position: static !important;
+    transform: none !important;
+    max-width: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  [data-shelf-label] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 62mm;
+    padding: 4mm;
+    border: 0;
+    background: #fff;
+    color: #000;
+    box-shadow: none;
+  }
+
+  @page {
+    size: 62mm 32mm;
+    margin: 0;
+  }
+}

@@ -28,6 +28,9 @@ it without asking anyone.
 
 The building is 6 aisles, 8 racks per aisle, 6 shelves per rack: 288 bins.
 
+Every part can print a shelf label carrying its name, its bin and a real Code 39 barcode
+of the SKU, on 62mm label stock.
+
 ### 2. Say what needs restocking, in the right order
 
 Anything at or below its reorder point is on the restocking list. The order is not "most
@@ -73,8 +76,8 @@ Deliberately out of scope, and each for a reason:
 - **Accounts and multi-user.** The demo has no server, so there is nobody to be.
 - **Purchase orders.** The product says what to order. Placing it is another system's job.
 - **Lot, serial and expiry tracking.** A different product for a different warehouse.
-- **Barcode scanning input.** Labels are generated and are real Code 39; reading them back
-  needs hardware this cannot assume.
+- **Barcode scanning input.** Labels are generated, printable and real Code 39; reading
+  them back needs hardware this cannot assume.
 - **Multi-site transfers.** Named in the pricing tiers as a direction, not built.
 
 ## Constraints

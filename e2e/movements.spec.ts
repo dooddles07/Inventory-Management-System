@@ -87,6 +87,42 @@ test("a movement without a reference is still traceable", async ({ page }) => {
   await expect(page.getByRole("row").filter({ hasText: "No Reference" })).toContainText("MANUAL");
 });
 
+test("moving a part to another bin lands in the log", async ({ page }) => {
+  await openParts(page);
+  await addPart(page, { name: "Moving Test", sku: "TST-8005", bin: "B-02-02", qty: 30 });
+
+  await findBySku(page, "TST-8005");
+  await openPart(page, "TST-8005");
+  await drawer(page).getByLabel("Bin", { exact: true }).fill("F-08-06");
+  await drawer(page).getByRole("button", { name: "Save changes" }).click();
+  await expect(drawer(page)).toBeHidden();
+
+  await page.goto("/app/movements");
+  await page.getByLabel("Filter movements").fill("Moving Test");
+
+  const row = page.getByRole("row").filter({ hasText: "Moving Test" });
+  await expect(row).toHaveCount(1);
+  await expect(row).toContainText("Moved");
+  await expect(row).toContainText("B-02-02");
+  await expect(row).toContainText("F-08-06");
+});
+
+test("a shelf label can be printed for the part in front of you", async ({ page }) => {
+  await openParts(page);
+  await addPart(page, { name: "Label Test", sku: "TST-8006", bin: "D-07-02", qty: 15 });
+
+  await findBySku(page, "TST-8006");
+  await openPart(page, "TST-8006");
+
+  const label = page.locator("[data-shelf-label]");
+  await expect(label).toBeVisible();
+  await expect(label).toContainText("Label Test");
+  await expect(label).toContainText("D-07-02");
+  await expect(label).toContainText("TST-8006");
+  await expect(label.getByRole("img", { name: /Code 39 barcode for TST-8006/ })).toBeVisible();
+  await expect(label.getByRole("button", { name: "Print" })).toBeVisible();
+});
+
 test("the movement log filters by kind", async ({ page }) => {
   await page.goto("/app/movements");
 

@@ -92,6 +92,9 @@ there is no query engine; the whole dataset is a few hundred rows in memory.
 6. **Deleting a part deletes its movements.** No orphan rows, because nothing here does
    soft deletes.
 7. **Ids never collide.** `nextId` reads the highest existing numeric suffix and adds one.
+8. **A bin change is always a movement.** `updateItem` logs a `transfer` when the bin
+   differs, so the history cannot be bypassed by editing the field on the form. The
+   quantity on that movement is 0: a move is not stock arriving or leaving.
 
 ## The seed
 

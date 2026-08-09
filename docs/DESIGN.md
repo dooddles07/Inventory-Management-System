@@ -135,8 +135,25 @@ Rules, in the order they matter:
    reader can tell them apart.
 7. **Do not claim what is not computed.** The hero said parts needed restocking "today"
    when nothing computed a day boundary. It does not say that now.
-8. **Admit what is not real.** The pricing section says it bills nobody, in the section
-   itself rather than in the footer.
+8. **Admit what is not real.** The pricing section says it bills nobody and that the tiers
+   describe where the product would go rather than what is built, in the section itself
+   rather than in the footer.
+9. **Never describe a feature that does not exist.** "Click a row to change a count, move
+   a part to a different bin, or print its shelf label" was two-thirds true for a while.
+   Printing is built now; the alternative was deleting the clause.
+
+## The shelf label
+
+The one part of the interface designed for paper. Print takes the label and nothing else:
+`visibility` rather than `display`, so collapsing the ancestors does not take the SVG's
+layout with them, and the drawer's spring transform is cleared because a transformed
+ancestor re-anchors `position: fixed` to itself.
+
+What lands on the label is what someone reads off a rack, in that order: the part name,
+the bin address in mono at the largest size, the barcode, then the SKU. The "Shelf label"
+caption and the Print button are interface, so they do not print. The barcode carries a
+ten-narrow-width quiet zone either side, without which a scanner will not lock on to the
+start character.
 
 ## Accessibility
 
