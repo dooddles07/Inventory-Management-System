@@ -1,0 +1,238 @@
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { LocalInventoryRepository } from "./local-repository";
+import type { ItemDraft } from "./types";
+
+/** Enough of the Storage contract for the repository, with a switch for making writes fail. */
+class FakeStorage {
+  private map = new Map<string, string>();
+  failWrites = false;
+
+  getItem(key: string): string | null {
+    return this.map.get(key) ?? null;
+  }
+
+  setItem(key: string, value: string): void {
+    if (this.failWrites) {
+      const error = new Error("quota");
+      error.name = "QuotaExceededError";
+      throw error;
+    }
+    this.map.set(key, value);
+  }
+
+  seedRaw(key: string, value: string): void {
+    this.map.set(key, value);
+  }
+}
+
+let storage: FakeStorage;
+
+beforeEach(() => {
+  storage = new FakeStorage();
+  // The repository reaches for the global window, so the test supplies one.
+  Object.defineProperty(globalThis, "window", {
+    value: { localStorage: storage },
+    configurable: true,
+    writable: true,
+  });
+});
+
+afterEach(() => {
+  Reflect.deleteProperty(globalThis, "window");
+});
+
+function draft(patch: Partial<ItemDraft> = {}): ItemDraft {
+  return {
+    sku: "TST-0001",
+    name: "Test Part",
+    category: "Fasteners",
+    supplierId: "sup_01",
+    uom: "ea",
+    qty: 10,
+    reorderPoint: 5,
+    safetyStock: 2,
+    unitCost: 100,
+    bin: "A-01-01",
+    ...patch,
+  };
+}
+
+describe("loading", () => {
+  it("seeds itself on a first visit and writes that seed back", async () => {
+    const repository = new LocalInventoryRepository();
+    const snapshot = await repository.load();
+
+    expect(snapshot.items.length).toBeGreaterThan(0);
+    expect(storage.getItem("stockroom:snapshot:v1")).not.toBeNull();
+  });
+
+  it("falls back to a fresh seed when the stored value is corrupt", async () => {
+    storage.seedRaw("stockroom:snapshot:v1", "{ not json");
+    const snapshot = await new LocalInventoryRepository().load();
+    expect(snapshot.items.length).toBeGreaterThan(0);
+  });
+
+  it("falls back when the stored value parses but is the wrong shape", async () => {
+    storage.seedRaw("stockroom:snapshot:v1", JSON.stringify({ items: "nope" }));
+    const snapshot = await new LocalInventoryRepository().load();
+    expect(Array.isArray(snapshot.items)).toBe(true);
+    expect(snapshot.items.length).toBeGreaterThan(0);
+  });
+});
+
+describe("createItem", () => {
+  it("puts the new part at the top and gives it an id and a timestamp", async () => {
+    const repository = new LocalInventoryRepository();
+    const created = await repository.createItem(draft());
+    const snapshot = await repository.load();
+
+    expect(created.id).toMatch(/^itm_\d{3}$/);
+    expect(created.updatedAt).toBeTruthy();
+    expect(snapshot.items[0].id).toBe(created.id);
+  });
+
+  it("does not reuse an existing id", async () => {
+    const repository = new LocalInventoryRepository();
+    const first = await repository.createItem(draft({ sku: "TST-0001" }));
+    const second = await repository.createItem(draft({ sku: "TST-0002" }));
+    expect(second.id).not.toBe(first.id);
+  });
+});
+
+describe("updateItem", () => {
+  it("merges the patch and refuses an unknown id", async () => {
+    const repository = new LocalInventoryRepository();
+    const created = await repository.createItem(draft());
+
+    const updated = await repository.updateItem(created.id, { name: "Renamed" });
+    expect(updated.name).toBe("Renamed");
+    expect(updated.sku).toBe(created.sku);
+
+    await expect(repository.updateItem("itm_missing", { name: "x" })).rejects.toThrow(
+      /No item with id/,
+    );
+  });
+});
+
+describe("adjust", () => {
+  it("records what was applied, not what was asked for, when stock runs out", async () => {
+    const repository = new LocalInventoryRepository();
+    const created = await repository.createItem(draft({ qty: 30 }));
+
+    const { item, movement } = await repository.adjust({
+      itemId: created.id,
+      type: "issue",
+      qty: -50,
+    });
+
+    expect(item.qty).toBe(0);
+    expect(movement.qty).toBe(-30);
+  });
+
+  it("adds a receipt to the count", async () => {
+    const repository = new LocalInventoryRepository();
+    const created = await repository.createItem(draft({ qty: 30 }));
+
+    const { item, movement } = await repository.adjust({
+      itemId: created.id,
+      type: "receipt",
+      qty: 25,
+      reference: "GRN-40218",
+    });
+
+    expect(item.qty).toBe(55);
+    expect(movement.qty).toBe(25);
+    expect(movement.reference).toBe("GRN-40218");
+  });
+
+  it("moves the bin without touching the count on a transfer", async () => {
+    const repository = new LocalInventoryRepository();
+    const created = await repository.createItem(draft({ qty: 30, bin: "A-01-01" }));
+
+    const { item, movement } = await repository.adjust({
+      itemId: created.id,
+      type: "transfer",
+      qty: -999,
+      toBin: "C-04-12",
+    });
+
+    expect(item.qty).toBe(30);
+    expect(item.bin).toBe("C-04-12");
+    expect(movement.qty).toBe(0);
+    expect(movement.fromBin).toBe("A-01-01");
+    expect(movement.toBin).toBe("C-04-12");
+  });
+
+  it("labels an unreferenced movement rather than leaving it blank", async () => {
+    const repository = new LocalInventoryRepository();
+    const created = await repository.createItem(draft());
+    const { movement } = await repository.adjust({
+      itemId: created.id,
+      type: "adjustment",
+      qty: 1,
+      reference: "   ",
+    });
+
+    expect(movement.reference).toBe("MANUAL");
+  });
+});
+
+describe("deleteItems", () => {
+  it("takes the part's movements with it", async () => {
+    const repository = new LocalInventoryRepository();
+    const created = await repository.createItem(draft());
+    await repository.adjust({ itemId: created.id, type: "receipt", qty: 5 });
+
+    await repository.deleteItems([created.id]);
+    const snapshot = await repository.load();
+
+    expect(snapshot.items.some((item) => item.id === created.id)).toBe(false);
+    expect(snapshot.movements.some((movement) => movement.itemId === created.id)).toBe(false);
+  });
+});
+
+describe("reset", () => {
+  it("throws away local edits and returns the seed", async () => {
+    const repository = new LocalInventoryRepository();
+    const created = await repository.createItem(draft({ sku: "ONLY-MINE" }));
+
+    const snapshot = await repository.reset();
+    expect(snapshot.items.some((item) => item.id === created.id)).toBe(false);
+  });
+});
+
+describe("isPersisting", () => {
+  it("starts true and turns false once a write cannot reach storage", async () => {
+    const repository = new LocalInventoryRepository();
+    await repository.load();
+    expect(repository.isPersisting()).toBe(true);
+
+    storage.failWrites = true;
+    await repository.createItem(draft());
+
+    expect(repository.isPersisting()).toBe(false);
+  });
+
+  it("keeps serving the change from memory after a failed write", async () => {
+    const repository = new LocalInventoryRepository();
+    await repository.load();
+    storage.failWrites = true;
+
+    const created = await repository.createItem(draft({ sku: "IN-MEMORY" }));
+    const snapshot = await repository.load();
+
+    expect(snapshot.items.some((item) => item.id === created.id)).toBe(true);
+  });
+
+  it("recovers once storage accepts writes again", async () => {
+    const repository = new LocalInventoryRepository();
+    await repository.load();
+    storage.failWrites = true;
+    await repository.createItem(draft({ sku: "FAILS" }));
+
+    storage.failWrites = false;
+    await repository.createItem(draft({ sku: "WORKS" }));
+
+    expect(repository.isPersisting()).toBe(true);
+  });
+});

@@ -23,7 +23,7 @@ Neutrals are blue-tinted throughout. No true gray appears anywhere: `ink-900 #0A
 `ink-700 #24384D`, `ink-500 #566C82`, `ink-300 #8FA3B8`, `line #DDE5EE`,
 `paper #EDF2F9`, `surface #FFFFFF`.
 
-Stock status needs colour that four blues cannot carry: `ok #1B806A`, `low #B45309`,
+Stock status needs colour that four blues cannot carry: `ok #176E5A`, `low #9E4808`,
 `out #B3261E`, each with a wash for chip backgrounds.
 
 ### Contrast rules that are not optional
@@ -40,6 +40,15 @@ Measured, not assumed:
 | white on `blue-500` | 3.1:1 | **Never** a button label |
 | `blue-700` on `paper` | 5.7:1 | Blue text on light surfaces |
 | `ink-500` on `paper` | 4.8:1 | Smallest allowed muted text |
+| `ok #176E5A` on `ok-wash` | 5.3:1 | Status pill, 10px text |
+| `low #9E4808` on `low-wash` | 5.4:1 | Status pill, 10px text |
+| `out #B3261E` on `out-wash` | 5.5:1 | Status pill, 10px text |
+
+The status colours were originally `#1B806A` and `#B45309`, which measured 4.2:1 and
+4.4:1 on their washes. Both failed AA at the 10px the pills are set in, and neither was
+in this table, which is how they got missed. Each status is now checked against its wash
+and against `surface`, `paper` and `blue-50` - every ground a pill or a figure lands on -
+and the worst pairing of the three is 5.3:1.
 
 Two consequences worth remembering. Solid buttons are navy with white text, never
 `#2196F3` with white text. Focus rings are `blue-500` on light and `blue-300` on navy,

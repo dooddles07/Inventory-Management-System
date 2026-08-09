@@ -11,9 +11,11 @@ const archivo = Archivo({
 });
 
 // Reserved for SKUs, bin addresses and every number on screen.
+// Only two weights: type-data sits at 400, type-label at 500, and the 600 that used to be
+// requested here belonged to type-meta, which is set in the sans face.
 const martian = Martian_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500"],
   display: "swap",
   variable: "--font-martian",
 });

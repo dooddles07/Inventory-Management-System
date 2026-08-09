@@ -33,7 +33,8 @@ const RELATIVE_STEPS: Array<[limit: number, divisor: number, unit: Intl.Relative
   [86_400_000, 3_600_000, "hour"],
   [604_800_000, 86_400_000, "day"],
   [2_592_000_000, 604_800_000, "week"],
-  [Number.POSITIVE_INFINITY, 2_592_000_000, "month"],
+  [31_536_000_000, 2_592_000_000, "month"],
+  [Number.POSITIVE_INFINITY, 31_536_000_000, "year"],
 ];
 
 const relative = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
@@ -44,6 +45,7 @@ export function formatRelative(iso: string, now: number): string {
   for (const [limit, divisor, unit] of RELATIVE_STEPS) {
     if (magnitude < limit) return relative.format(Math.round(delta / divisor), unit);
   }
+  // The last step runs to infinity, so this only exists to satisfy the return type.
   return iso.slice(0, 10);
 }
 
@@ -57,9 +59,14 @@ export function formatDate(iso: string): string {
   return absolute.format(new Date(iso));
 }
 
-/** "C-04-12" reads as aisle C, rack 4, shelf 12. */
+/** "C-04-12" reads as aisle C, rack 4, shelf 12. Anything else is handed back untouched. */
 export function describeBin(code: string): string {
   const [aisle, rack, shelf] = code.split("-");
   if (!aisle || !rack || !shelf) return code;
-  return `Aisle ${aisle}, rack ${Number(rack)}, shelf ${Number(shelf)}`;
+
+  const rackNumber = Number(rack);
+  const shelfNumber = Number(shelf);
+  if (!Number.isFinite(rackNumber) || !Number.isFinite(shelfNumber)) return code;
+
+  return `Aisle ${aisle}, rack ${rackNumber}, shelf ${shelfNumber}`;
 }

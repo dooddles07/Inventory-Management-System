@@ -35,10 +35,12 @@
   --color-on-navy-muted: #a9c6e8;
   --color-navy-line: #1c5bb8;
 
-  /* Stock status - four blues cannot encode stock health */
-  --color-ok: #1b806a;
+  /* Stock status - four blues cannot encode stock health.
+     Each one clears 4.5:1 against its own wash and against surface, paper and blue-50,
+     which is every ground a status pill or figure actually lands on. */
+  --color-ok: #176e5a;
   --color-ok-wash: #e4f2ee;
-  --color-low: #b45309;
+  --color-low: #9e4808;
   --color-low-wash: #fbeee0;
   --color-out: #b3261e;
   --color-out-wash: #f9e7e5;

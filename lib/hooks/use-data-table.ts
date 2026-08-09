@@ -24,7 +24,8 @@ const EMPTY_FILTERS: TableFilters = {
   status: "all",
 };
 
-function compare(a: Item, b: Item, key: SortKey): number {
+/** Exported for the test suite: the hook itself is the only caller in the app. */
+export function compare(a: Item, b: Item, key: SortKey): number {
   switch (key) {
     case "qty":
       return a.qty - b.qty;
@@ -43,7 +44,8 @@ function compare(a: Item, b: Item, key: SortKey): number {
   }
 }
 
-function matches(item: Item, filters: TableFilters): boolean {
+/** Exported for the test suite: the hook itself is the only caller in the app. */
+export function matches(item: Item, filters: TableFilters): boolean {
   const term = filters.search.trim().toLowerCase();
   if (term) {
     const haystack = `${item.sku} ${item.name} ${item.bin} ${item.category}`.toLowerCase();
