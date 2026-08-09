@@ -53,8 +53,21 @@ export function FloorMap({ floor, totalBins }: FloorMapProps) {
                                 : undefined,
                           animationDelay: `${aisleIndex * 0.05 + rackIndex * 0.018 + shelfIndex * 0.006}s`,
                         }}
-                        onMouseEnter={() => setActive(cell)}
-                        onMouseLeave={() => setActive(null)}
+                        /*
+                          A phone has no hover, so without the click the readout below
+                          never fills - the one thing this element exists to do.
+
+                          Enter and leave are gated on a real mouse because a tap also
+                          emits them for compatibility, and the trailing mouseleave would
+                          wipe the cell the tap had just chosen.
+                        */
+                        onPointerEnter={(event) => {
+                          if (event.pointerType === "mouse") setActive(cell);
+                        }}
+                        onPointerLeave={(event) => {
+                          if (event.pointerType === "mouse") setActive(null);
+                        }}
+                        onClick={() => setActive(cell)}
                       />
                     );
                   })}
@@ -87,7 +100,7 @@ export function FloorMap({ floor, totalBins }: FloorMapProps) {
         ) : (
           <div className="flex w-full items-center justify-between gap-4">
             <p className="text-[0.8125rem] text-on-navy-muted">
-              Hover a bin to see what is in it. {totalBins} bins across six aisles.
+              Pick a bin to see what is in it. {totalBins} bins across six aisles.
             </p>
             <div className="flex shrink-0 items-center gap-1.5">
               {RAMP.map((color, index) => (

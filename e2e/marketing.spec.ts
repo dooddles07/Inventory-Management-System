@@ -43,7 +43,7 @@ test.describe("landing page", () => {
   test("the floor map names a bin when you point at one", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page.getByText(/Hover a bin to see what is in it/)).toBeVisible();
+    await expect(page.getByText(/Pick a bin to see what is in it/)).toBeVisible();
 
     await page.locator(".bin-cell-in").nth(40).hover();
     await expect(page.getByText(/^[A-F]-\d{2}-\d{2}/).first()).toBeVisible();
@@ -55,6 +55,42 @@ test.describe("landing page", () => {
     await page.getByRole("banner").getByRole("link", { name: "Open Stockroom" }).click();
     await expect(page).toHaveURL(/\/app$/);
     await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
+  });
+
+  test.describe("on a phone", () => {
+    test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+    // The bin code is the first thing in the readout, which is what anchors this.
+    const binCode = /^[A-F]-\d{2}-\d{2}/;
+
+    test("the floor map answers a tap, since there is no hover to give it", async ({ page }) => {
+      await page.goto("/");
+
+      // The instruction has to be one a touch visitor can actually follow.
+      await expect(page.getByText(/Hover a bin/)).toHaveCount(0);
+      expect(await page.evaluate(() => window.matchMedia("(hover: hover)").matches)).toBe(false);
+
+      const prompt = page.getByText(/Pick a bin to see what is in it/);
+      await expect(prompt).toBeVisible();
+
+      await page.locator(".bin-cell-in").nth(60).tap();
+
+      await expect(prompt).toBeHidden();
+      await expect(page.getByText(binCode).first()).toBeVisible();
+    });
+
+    test("tapping a different bin moves the readout to it", async ({ page }) => {
+      await page.goto("/");
+
+      await page.locator(".bin-cell-in").nth(60).tap();
+      const first = await page.getByText(binCode).first().innerText();
+
+      await page.locator(".bin-cell-in").nth(140).tap();
+      const second = await page.getByText(binCode).first().innerText();
+
+      expect(first).toMatch(binCode);
+      expect(second).not.toBe(first);
+    });
   });
 
   test("the page keeps one h1 and an outline that does not skip", async ({ page }) => {

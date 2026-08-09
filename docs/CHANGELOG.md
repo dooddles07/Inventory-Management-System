@@ -28,6 +28,10 @@ versions follow [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **The landing page's floor map was inert on every phone.** It was driven by hover alone
+  and told visitors to "hover a bin", an instruction no touch device can follow. It answers
+  a tap now, and the copy says "pick" rather than "hover". Hover and leave are gated on a
+  real mouse, since a tap emits them too and the trailing one wiped the chosen cell.
 - **A second tab destroyed the first tab's work.** The repository read storage once and
   cached it, so every write serialised a stale snapshot over whatever was there. Open two
   tabs, add a part in each, and the first one was gone with no message. Storage is re-read

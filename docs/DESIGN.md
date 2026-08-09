@@ -47,16 +47,22 @@ Two decisions worth keeping:
 every non-zero fill starts at step 1. Without that, a nearly-empty bin and an empty one
 look the same, which is the one distinction the map exists to make.
 
-**The readout is a fixed slot, not a floating tooltip.** Hovering fills a reserved strip
-under the grid. Nothing reflows, nothing is obscured, and a pointer moving across 288
-cells does not cause 288 layout passes.
+**The readout is a fixed slot, not a floating tooltip.** Choosing a bin fills a reserved
+strip under the grid. Nothing reflows, nothing is obscured, and a pointer moving across
+288 cells does not cause 288 layout passes.
+
+**It answers a tap as well as a pointer.** The marketing map was hover-only and told
+visitors to "hover a bin", which is an instruction no phone can follow - the signature
+element of the landing page, inert on half the traffic. Hover still drives it on a mouse,
+but enter and leave are gated on `pointerType === "mouse"`, because a tap emits those
+events too and the trailing `pointerleave` wiped the cell the tap had just chosen.
 
 On the map screen the grid is keyboard navigable - arrow keys walk the racks, `Home` and
 `End` jump to the ends of an aisle, and only the active cell is tabbable so the grid is a
 single tab stop rather than 288.
 
-On the marketing page the same grid is `aria-hidden` and hover-only. It is illustration
-there; the readout beside it carries the content.
+On the marketing page the same grid is `aria-hidden` and pointer-driven. It is
+illustration there; the readout beside it carries the content.
 
 ## Status is never colour alone
 
