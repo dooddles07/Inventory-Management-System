@@ -3,7 +3,31 @@
 import { Dialog } from "radix-ui";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+
+/**
+ * Puts focus back where it came from once a dialog closes.
+ *
+ * Radix does this itself when its content unmounts, which the drawer defeats: the panel
+ * stays mounted through its exit animation, so by the time it goes there is nothing left
+ * to restore to and the keyboard lands on the document body.
+ */
+function useReturnFocus(open: boolean) {
+  const origin = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      origin.current = document.activeElement as HTMLElement | null;
+      return;
+    }
+
+    const target = origin.current;
+    origin.current = null;
+    // The trigger can be gone - a deleted row, a filtered table - in which case there is
+    // nowhere sensible to go and the browser's own default is the honest outcome.
+    if (target?.isConnected) target.focus();
+  }, [open]);
+}
 
 /**
  * Right-hand sheet on a Radix dialog, so focus trapping, escape and scroll locking
@@ -24,6 +48,8 @@ export function Drawer({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  useReturnFocus(open);
+
   const reduced = useReducedMotion();
   const spring = reduced
     ? { duration: 0 }
@@ -105,6 +131,8 @@ export function ConfirmDialog({
   cancelLabel?: string;
   onConfirm: () => void;
 }) {
+  useReturnFocus(open);
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>

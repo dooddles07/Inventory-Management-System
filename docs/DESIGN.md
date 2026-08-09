@@ -171,6 +171,15 @@ What that took, beyond the contrast work:
   and what is in it.
 - Focus rings flip on navy. `blue-500` reaches 2.6:1 there, so `.on-navy` switches the
   ring to `blue-300`, which reaches 4.6:1.
+- A skip link on both surfaces. The app puts nine tab stops - the rail, the top bar -
+  before a screen's own controls, and the parts table adds two per row after that.
+- Closing a dialog puts focus back on whatever opened it. Radix does this when its content
+  unmounts, which the drawer defeats by staying mounted through its exit animation, so the
+  components restore focus themselves.
+
+axe does not catch either of those: a missing skip link is not a violation, and focus
+restoration is behaviour rather than markup. Both came out of walking the app with the
+keyboard, and both are covered by `e2e/keyboard.spec.ts` now.
 
 ## Responsive
 

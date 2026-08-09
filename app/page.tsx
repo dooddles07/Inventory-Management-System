@@ -4,6 +4,7 @@ import { PartsProof, RestockProof } from "@/components/marketing/live-proof";
 import { Pricing } from "@/components/marketing/pricing";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { ClosingCta, SiteFooter } from "@/components/marketing/site-footer";
+import { SkipLink } from "@/components/ui/skip-link";
 import { lineValue, reorderQueue, statusOf, totals } from "@/lib/inventory/derive";
 import { buildFloor } from "@/lib/inventory/floor";
 import { allBins, createSeedSnapshot } from "@/lib/inventory/seed";
@@ -18,8 +19,9 @@ export default function MarketingPage() {
 
   return (
     <>
+      <SkipLink />
       <SiteHeader />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <Hero
           floor={buildFloor(snapshot.items)}
           stats={{

@@ -16,8 +16,14 @@ versions follow [semantic versioning](https://semver.org/spec/v2.0.0.html).
 - Project documentation: `PRD.md`, `ARCHITECTURE.md`, `DATABASE.md`, `API.md`, `DESIGN.md`.
 - CI status badge and a live link in the README.
 
+- **A skip link** on both surfaces, past nine navigation stops into the page content.
+
 ### Fixed
 
+- **Closing a dialog left focus on the document body** instead of the control that opened
+  it, so a keyboard user was thrown to the top of the page every time. Radix restores
+  focus when its content unmounts; the drawer stays mounted through its exit animation, so
+  the components now restore it themselves. WCAG 2.4.3.
 - **Moving a part to another bin was never recorded.** `updateItem` merged the change
   blindly, so a bin edit through the form vanished from a log that claims to hold every
   movement. It now writes a `transfer` with the old and new bins, in the repository rather
