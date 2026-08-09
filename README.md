@@ -1,5 +1,9 @@
 # Stockroom
 
+[![CI](https://github.com/dooddles07/Inventory-Management-System/actions/workflows/ci.yml/badge.svg)](https://github.com/dooddles07/Inventory-Management-System/actions/workflows/ci.yml)
+
+[Live](https://inventory-management-system-one-zeta.vercel.app)
+
 Inventory tracking for small warehouses. Every part gets a bin number, so anyone on
 shift can walk straight to it, and the floor map shows how full the building is at a
 glance.
@@ -70,6 +74,18 @@ the client render the same snapshot.
 
 Writes that fail to reach `localStorage` - a full quota, or private browsing - keep
 working in memory and say so in a banner, rather than looking like they saved.
+
+## Docs
+
+| | |
+|---|---|
+| [PRD.md](docs/PRD.md) | The problem, who it is for, scope and non-goals |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | How it is put together and what was left out |
+| [DATABASE.md](docs/DATABASE.md) | The data model, its rules, and the SQL it would map to |
+| [API.md](docs/API.md) | The repository contract and the route surface |
+| [DESIGN.md](docs/DESIGN.md) | Interface and copy decisions |
+| [DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) | Colour roles, contrast ratios, type |
+| [CHANGELOG.md](docs/CHANGELOG.md) | What changed, and why |
 
 ## Design
 
