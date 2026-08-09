@@ -148,6 +148,20 @@ Rules, in the order they matter:
    a part to a different bin, or print its shelf label" was two-thirds true for a while.
    Printing is built now; the alternative was deleting the clause.
 
+## Paper
+
+Two kinds of printing, and they need different rules.
+
+**A screen prints as a document.** The rail, the top bar and the skip link come off, the
+shell stops being a fixed-height flex column and is allowed to grow, rows and list items
+avoid breaking across pages, and table headers repeat. Printing the parts list or the
+movement log is a reasonable thing to want in a warehouse.
+
+**A shelf label prints as a label**, on 62mm stock, and only when one is on screen. That
+condition is the whole difference: the first version of these rules hid everything on
+every page unconditionally, so printing anything without a drawer open produced a blank
+sheet. A named `@page` keeps the label's tiny page size off ordinary prints.
+
 ## The shelf label
 
 The one part of the interface designed for paper. Print takes the label and nothing else:
@@ -183,6 +197,10 @@ What that took, beyond the contrast work:
   unmounts, which the drawer defeats by staying mounted through its exit animation, so the
   components restore focus themselves.
 
+- The floor map keeps its fill under Windows High Contrast. Forced colours replace every
+  background, which erased the one element whose background *is* the data - the grid went
+  uniformly blank while looking perfectly fine. `forced-color-adjust: none` on the cells
+  only; everything else adopts the system palette as it should.
 - Two live regions, and only two. Filtering the table announces how many parts are left,
   and recording a movement says what was received or picked. Both stay mounted while
   empty, because a live region that appears at the same moment as its content is not

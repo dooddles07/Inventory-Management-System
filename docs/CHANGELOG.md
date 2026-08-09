@@ -28,6 +28,15 @@ versions follow [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **Printing any screen produced a blank sheet.** The shelf-label rules hid everything on
+  every page unconditionally, so Ctrl+P on the parts list, the movement log or the
+  marketing page printed nothing at all. Screens print as documents now - chrome off,
+  content on, headers repeating, rows not split across pages - and the label rules apply
+  only when a label is actually on screen.
+- **Windows High Contrast erased the floor map.** Forced colours replace every background,
+  and the map's background *is* its data, so the grid went uniformly blank while looking
+  perfectly healthy. The cells keep their fill; the rest of the interface still adopts the
+  system palette.
 - **The landing page's floor map was inert on every phone.** It was driven by hover alone
   and told visitors to "hover a bin", an instruction no touch device can follow. It answers
   a tap now, and the copy says "pick" rather than "hover". Hover and leave are gated on a

@@ -191,25 +191,72 @@
 }
 
 /*
-  Printing a shelf label prints the label, not the screen behind it. Visibility rather
-  than display, because collapsing the ancestors would take the SVG's layout with them.
+  Two kinds of printing.
+
+  With a shelf label open, the label is the whole page and everything else disappears.
+  Without one, the screen prints as a document: chrome off, content on. An earlier version
+  of this block only handled the first case, so printing the parts list or the movement log
+  produced a blank sheet.
 */
+@page {
+  margin: 12mm;
+}
+
+@page label {
+  size: 62mm 32mm;
+  margin: 0;
+}
+
 @media print {
   body {
     background: #fff;
   }
 
-  body * {
+  [data-print-hide],
+  [data-app-shell] nav[aria-label="Sections"],
+  [data-app-shell] > div > header,
+  [data-app-shell] [role="alert"]:empty {
+    display: none !important;
+  }
+
+  /* The shell is a fixed-height flex column on screen; on paper it has to grow. */
+  [data-app-shell],
+  #main-content {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* Backgrounds and shadows cost ink and buy nothing on paper. */
+  [data-app-shell] *,
+  main * {
+    box-shadow: none !important;
+  }
+
+  /* A row that is cut in half across a page break is unreadable. */
+  tr,
+  li {
+    break-inside: avoid;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+}
+
+/* Only when a label is on screen does the page become a label. */
+@media print {
+  body:has([data-shelf-label]) {
+    page: label;
+  }
+
+  body:has([data-shelf-label]) * {
     visibility: hidden;
   }
 
-  [data-shelf-label],
-  [data-shelf-label] * {
+  body:has([data-shelf-label]) [data-shelf-label],
+  body:has([data-shelf-label]) [data-shelf-label] * {
     visibility: visible;
-  }
-
-  [data-print-hide] {
-    display: none !important;
   }
 
   /*
@@ -217,7 +264,7 @@
     re-anchors position: fixed to itself. Clearing it puts the label on the page origin
     instead of wherever the panel happened to stop.
   */
-  [role="dialog"] {
+  body:has([data-shelf-label]) [role="dialog"] {
     position: static !important;
     transform: none !important;
     max-width: none !important;
@@ -236,9 +283,16 @@
     color: #000;
     box-shadow: none;
   }
+}
 
-  @page {
-    size: 62mm 32mm;
-    margin: 0;
+/*
+  Windows High Contrast replaces every background, which erases the floor map: fill is the
+  data there, not decoration, and the grid goes uniformly blank. The legend and the readout
+  still say the same thing in words, so the colour is kept rather than substituted.
+*/
+@media (forced-colors: active) {
+  .bin-cell-in,
+  [role="gridcell"] {
+    forced-color-adjust: none;
   }
 }

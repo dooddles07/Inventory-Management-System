@@ -8,7 +8,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <InventoryProvider>
       <SkipLink />
-      <div className="flex h-dvh overflow-hidden bg-paper">
+      <div data-app-shell className="flex h-dvh overflow-hidden bg-paper">
         <RailNav />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar />
