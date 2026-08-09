@@ -51,6 +51,72 @@ test.describe("a browser holding something unusable", () => {
   });
 });
 
+test.describe("two tabs on the same warehouse", () => {
+  async function add(page: import("@playwright/test").Page, name: string, sku: string, bin: string) {
+    await page.getByRole("button", { name: "Add part", exact: true }).click();
+    const panel = page.getByRole("dialog");
+    await panel.getByLabel("Part name", { exact: true }).fill(name);
+    await panel.getByLabel("SKU", { exact: true }).fill(sku);
+    await panel.getByLabel("Bin", { exact: true }).fill(bin);
+    await panel.getByRole("button", { name: "Add part", exact: true }).click();
+    await expect(panel).toBeHidden();
+  }
+
+  test("neither tab destroys the other's work", async ({ page, context }) => {
+    const second = await context.newPage();
+
+    await openParts(page);
+    await openParts(second);
+
+    await add(page, "From Tab A", "TAB-A001", "A-01-02");
+    await add(second, "From Tab B", "TAB-B001", "A-01-03");
+
+    // A third reader sees the storage both tabs wrote to.
+    const third = await context.newPage();
+    await openParts(third);
+
+    await third.getByLabel("Filter parts").fill("TAB-");
+    await expect(third.getByRole("row").filter({ hasText: "TAB-A001" })).toHaveCount(1);
+    await expect(third.getByRole("row").filter({ hasText: "TAB-B001" })).toHaveCount(1);
+
+    await second.close();
+    await third.close();
+  });
+
+  test("a tab picks up what the other one wrote", async ({ page, context }) => {
+    const second = await context.newPage();
+
+    await openParts(page);
+    await openParts(second);
+
+    await add(second, "Written Elsewhere", "TAB-C001", "B-05-05");
+
+    // No reload: the storage event should have brought it across.
+    await page.getByLabel("Filter parts").fill("TAB-C001");
+    await expect(page.getByRole("row").filter({ hasText: "TAB-C001" })).toHaveCount(1, {
+      timeout: 10_000,
+    });
+
+    await second.close();
+  });
+
+  test("a reset in one tab clears the other", async ({ page, context }) => {
+    const second = await context.newPage();
+
+    await openParts(page);
+    await add(page, "Doomed By Reset", "TAB-D001", "C-06-06");
+    await openParts(second);
+
+    await second.getByTitle("Restore the sample warehouse").click();
+    await second.getByRole("dialog").getByRole("button", { name: "Reset everything" }).click();
+
+    await page.getByLabel("Filter parts").fill("TAB-D001");
+    await expect(page.getByText("No parts match these filters")).toBeVisible({ timeout: 10_000 });
+
+    await second.close();
+  });
+});
+
 test.describe("announcements", () => {
   test("filtering reports how many parts are left", async ({ page }) => {
     await openParts(page);

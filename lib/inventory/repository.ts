@@ -16,7 +16,8 @@ export interface AdjustRequest {
 export interface InventoryRepository {
   load(): Promise<InventorySnapshot>;
   createItem(draft: ItemDraft): Promise<Item>;
-  updateItem(id: string, patch: Partial<ItemDraft>): Promise<Item>;
+  /** The id is the first argument; a patch cannot carry one that would be ignored. */
+  updateItem(id: string, patch: Partial<Omit<ItemDraft, "id">>): Promise<Item>;
   deleteItems(ids: string[]): Promise<void>;
   adjust(request: AdjustRequest): Promise<{ item: Item; movement: Movement }>;
   reset(): Promise<InventorySnapshot>;

@@ -100,12 +100,20 @@ export class LocalInventoryRepository implements InventoryRepository {
   private persisting = true;
 
   private read(): InventorySnapshot {
-    if (this.cache) return this.cache;
-
     if (typeof window === "undefined") {
-      this.cache = createSeedSnapshot();
+      this.cache ??= createSeedSnapshot();
       return this.cache;
     }
+
+    /*
+      Storage is shared with every other tab, so whenever it is working it is the truth and
+      this re-reads it. Serving a cached copy instead meant a second tab wrote its own stale
+      snapshot over the first tab's work and destroyed it without a word.
+
+      The one exception is a browser that will not accept writes: then nothing else can be
+      changing storage, and the in-memory copy is the only place this session's work exists.
+    */
+    if (this.cache && !this.persisting) return this.cache;
 
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -113,7 +121,7 @@ export class LocalInventoryRepository implements InventoryRepository {
         const parsed: unknown = JSON.parse(raw);
         if (isSnapshot(parsed)) {
           this.cache = parsed;
-          return this.cache;
+          return parsed;
         }
       }
     } catch {
@@ -157,7 +165,7 @@ export class LocalInventoryRepository implements InventoryRepository {
     return item;
   }
 
-  async updateItem(id: string, patch: Partial<ItemDraft>): Promise<Item> {
+  async updateItem(id: string, patch: Partial<Omit<ItemDraft, "id">>): Promise<Item> {
     const snapshot = this.read();
     const index = snapshot.items.findIndex((item) => item.id === id);
     if (index === -1) throw new Error(`No item with id ${id}`);

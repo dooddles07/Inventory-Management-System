@@ -101,6 +101,77 @@ describe("loading", () => {
     });
   }
 
+  // Two tabs share one localStorage. Each builds its own repository, and a cached copy
+  // used to mean the second one wrote its stale snapshot over the first one's work.
+  describe("two repositories over one storage", () => {
+    it("sees what the other one wrote", async () => {
+      const tabA = new LocalInventoryRepository();
+      const tabB = new LocalInventoryRepository();
+      await tabA.load();
+      await tabB.load();
+
+      const fromA = await tabA.createItem(draft({ sku: "TAB-A" }));
+      const seenByB = await tabB.load();
+
+      expect(seenByB.items.some((item) => item.id === fromA.id)).toBe(true);
+    });
+
+    it("does not destroy the other one's work when it writes", async () => {
+      const tabA = new LocalInventoryRepository();
+      const tabB = new LocalInventoryRepository();
+      await tabA.load();
+      await tabB.load();
+
+      await tabA.createItem(draft({ sku: "TAB-A" }));
+      await tabB.createItem(draft({ sku: "TAB-B" }));
+
+      const stored = await new LocalInventoryRepository().load();
+      const skus = stored.items.map((item) => item.sku);
+
+      expect(skus).toContain("TAB-A");
+      expect(skus).toContain("TAB-B");
+    });
+
+    it("gives the two parts different ids", async () => {
+      const tabA = new LocalInventoryRepository();
+      const tabB = new LocalInventoryRepository();
+      await tabA.load();
+      await tabB.load();
+
+      await tabA.createItem(draft({ sku: "TAB-A" }));
+      await tabB.createItem(draft({ sku: "TAB-B" }));
+
+      const ids = (await new LocalInventoryRepository().load()).items.map((item) => item.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it("does not resurrect a part the other one deleted", async () => {
+      const tabA = new LocalInventoryRepository();
+      const tabB = new LocalInventoryRepository();
+      const seeded = await tabA.load();
+      await tabB.load();
+
+      const victim = seeded.items[0].id;
+      await tabA.deleteItems([victim]);
+      await tabB.createItem(draft({ sku: "TAB-B" }));
+
+      const stored = await new LocalInventoryRepository().load();
+      expect(stored.items.some((item) => item.id === victim)).toBe(false);
+    });
+
+    it("still serves from memory when storage will not take writes", async () => {
+      const repository = new LocalInventoryRepository();
+      await repository.load();
+      storage.failWrites = true;
+
+      const created = await repository.createItem(draft({ sku: "MEMORY-ONLY" }));
+
+      // Re-reading storage here would throw the change away, since it never landed.
+      const snapshot = await repository.load();
+      expect(snapshot.items.some((item) => item.id === created.id)).toBe(true);
+    });
+  });
+
   it("keeps a snapshot that is genuinely valid", async () => {
     const first = new LocalInventoryRepository();
     const seeded = await first.load();

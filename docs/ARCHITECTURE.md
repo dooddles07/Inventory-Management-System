@@ -77,6 +77,11 @@ changing the single `new LocalInventoryRepository()` in the provider. See
 The interface is async even though localStorage is synchronous, so that swap does not
 ripple into a single component.
 
+Storage is shared by every tab on the origin, so the repository treats it as the truth and
+re-reads before each read and write rather than serving a cached copy. Caching it meant a
+second tab wrote its stale snapshot over the first tab's work. The provider also listens
+for the `storage` event, so a tab that did not make the change still shows it.
+
 It carries one method that is not CRUD: `isPersisting()`. A browser can accept a write
 into memory and refuse to store it - a full quota, private browsing. Without that signal
 the app would close the drawer and look like it saved. The provider turns a false into a

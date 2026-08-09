@@ -22,8 +22,17 @@ versions follow [semantic versioning](https://semver.org/spec/v2.0.0.html).
 - An escape hatch on the error page that clears the stored snapshot, since that page
   replaces the app shell and the reset button along with it.
 
+- Tabs stay in step through the `storage` event instead of waiting for a reload.
+
 ### Fixed
 
+- **A second tab destroyed the first tab's work.** The repository read storage once and
+  cached it, so every write serialised a stale snapshot over whatever was there. Open two
+  tabs, add a part in each, and the first one was gone with no message. Storage is re-read
+  before every read and write now, except when the browser is refusing writes and the
+  in-memory copy is all that exists.
+- `updateItem` accepted an `id` inside its patch that was then silently overridden. The
+  type no longer allows it.
 - **A stored snapshot shaped right but holding junk reached the screens.** `isSnapshot`
   only checked that the three collections were arrays, so an item missing its numbers threw
   the parts page to the error boundary and put `NaN` on the overview - and because the

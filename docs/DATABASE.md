@@ -14,7 +14,15 @@ Types are in [`lib/inventory/types.ts`](../lib/inventory/types.ts).
 | Key | `stockroom:snapshot:v1` |
 | Format | One JSON object, `{ items, suppliers, movements }` |
 | Written | On every mutation, whole-snapshot |
-| Read | Once per session into an in-memory cache |
+| Read | Before every read and every write, so other tabs are never overwritten |
+
+Storage is shared by every tab on the origin, which makes it the truth rather than a
+backing store for a cache. It used to be read once per session, and a second tab then
+wrote its stale snapshot over the first tab's work and destroyed it silently. The one
+exception is a browser refusing writes: nothing else can be changing storage then, and the
+in-memory copy is the only place the session's work exists.
+
+Other tabs pick up a change through the `storage` event rather than waiting for a reload.
 
 The `v1` suffix is the migration hatch. A future shape becomes `v2` and the reader falls
 back to a fresh seed rather than trying to upgrade a demo dataset.

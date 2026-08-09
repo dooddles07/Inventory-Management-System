@@ -10,7 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { LocalInventoryRepository } from "@/lib/inventory/local-repository";
+import { LocalInventoryRepository, STORAGE_KEY } from "@/lib/inventory/local-repository";
 import type { AdjustRequest, InventoryRepository } from "@/lib/inventory/repository";
 import type { InventorySnapshot, Item, ItemDraft } from "@/lib/inventory/types";
 
@@ -46,7 +46,7 @@ function reducer(state: State, action: Action): State {
 
 interface InventoryValue extends State {
   createItem: (draft: ItemDraft) => Promise<void>;
-  updateItem: (id: string, patch: Partial<ItemDraft>) => Promise<void>;
+  updateItem: (id: string, patch: Partial<Omit<ItemDraft, "id">>) => Promise<void>;
   deleteItems: (ids: string[]) => Promise<void>;
   adjust: (request: AdjustRequest) => Promise<void>;
   resetToSeed: () => Promise<void>;
@@ -95,6 +95,19 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
     }
   }, [repository]);
 
+  // Another tab writing to the same storage is the only outside change this app can get.
+  // Without this, a second tab keeps showing a warehouse that no longer exists.
+  useEffect(() => {
+    function onStorage(event: StorageEvent) {
+      // A null key means the whole store was cleared.
+      if (event.key !== null && event.key !== STORAGE_KEY) return;
+      void refresh();
+    }
+
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [refresh]);
+
   const createItem = useCallback(
     async (draft: ItemDraft) => {
       try {
@@ -108,7 +121,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   );
 
   const updateItem = useCallback(
-    async (id: string, patch: Partial<ItemDraft>) => {
+    async (id: string, patch: Partial<Omit<ItemDraft, "id">>) => {
       try {
         await repository.updateItem(id, patch);
         await refresh();
