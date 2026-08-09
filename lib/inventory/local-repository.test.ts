@@ -195,6 +195,29 @@ describe("createItem", () => {
     expect(snapshot.items[0].id).toBe(created.id);
   });
 
+  it("does not collide with ids it cannot read a number out of", async () => {
+    // A network implementation could hand back ids in any shape. With nothing numeric to
+    // count from, the generator has to check what is taken rather than trust the highest.
+    storage.seedRaw(
+      "stockroom:snapshot:v1",
+      JSON.stringify({
+        items: [
+          { ...draft(), id: "itm_alpha", sku: "A-1", updatedAt: "t" },
+          { ...draft(), id: "itm_001", sku: "A-2", updatedAt: "t" },
+        ],
+        suppliers: [],
+        movements: [],
+      }),
+    );
+
+    const repository = new LocalInventoryRepository();
+    const created = await repository.createItem(draft({ sku: "A-3" }));
+    const ids = (await repository.load()).items.map((item) => item.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.filter((id) => id === created.id)).toHaveLength(1);
+  });
+
   it("does not reuse an existing id", async () => {
     const repository = new LocalInventoryRepository();
     const first = await repository.createItem(draft({ sku: "TST-0001" }));

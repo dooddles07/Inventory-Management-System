@@ -68,6 +68,11 @@ const ASSUMED_LEAD_DAYS = 7;
  * all showing zero, in no useful order. Urgency is how much is missing multiplied by
  * how long the supplier takes, doubled once a part has actually run out. A part that is
  * empty with a three-week supplier outranks one that is empty with a three-day supplier.
+ *
+ * Both factors are floored at one. A supplier who delivers the same day, or a part sitting
+ * exactly on its reorder point with no safety stock, would otherwise multiply out to zero
+ * urgency and sink below parts that are in better shape - which is the one thing the
+ * doubling is there to prevent.
  */
 export function reorderQueue(items: Item[], suppliers: Supplier[], limit?: number): ReorderLine[] {
   const supplierById = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
@@ -84,7 +89,7 @@ export function reorderQueue(items: Item[], suppliers: Supplier[], limit?: numbe
         supplier,
         shortfall,
         coverDays: supplier ? supplier.leadTimeDays : null,
-        urgency: shortfall * leadDays * (item.qty <= 0 ? 2 : 1),
+        urgency: Math.max(shortfall, 1) * Math.max(leadDays, 1) * (item.qty <= 0 ? 2 : 1),
       };
     })
     .sort((a, b) => b.urgency - a.urgency || a.item.name.localeCompare(b.item.name));

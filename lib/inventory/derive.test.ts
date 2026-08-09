@@ -143,6 +143,47 @@ describe("reorderQueue", () => {
     expect(line.coverDays).toBeNull();
   });
 
+  it("does not let a same-day supplier flatten a shortage to nothing", () => {
+    // Lead time is a multiplier, so a zero would erase the shortfall entirely and drop a
+    // real shortage below parts in better shape.
+    const instant = supplier({ id: "sup_now", leadTimeDays: 0 });
+    const [line] = reorderQueue(
+      [item({ id: "out", qty: 0, reorderPoint: 20, safetyStock: 8, supplierId: instant.id })],
+      [instant],
+    );
+
+    expect(line.urgency).toBeGreaterThan(0);
+    expect(line.coverDays).toBe(0);
+  });
+
+  it("ranks the emptier of two parts that share a supplier", () => {
+    // What the doubling is actually for: same shortfall pressure, one has run out.
+    const queue = reorderQueue(
+      [
+        item({ id: "low", sku: "A", qty: 5, reorderPoint: 20, safetyStock: 8, supplierId: slow.id }),
+        item({ id: "out", sku: "B", qty: 0, reorderPoint: 20, safetyStock: 8, supplierId: slow.id }),
+      ],
+      [slow],
+    );
+
+    expect(queue.map((line) => line.item.id)).toEqual(["out", "low"]);
+  });
+
+  it("still ranks a shortage that rounds to nothing", () => {
+    // Exactly at the reorder point with no safety stock: a real shortage whose shortfall
+    // and lead time both compute to zero.
+    const queue = reorderQueue(
+      [
+        item({ id: "degenerate", sku: "A", qty: 20, reorderPoint: 20, safetyStock: 0, supplierId: "sup_now" }),
+        item({ id: "healthy", sku: "B", qty: 500, reorderPoint: 20 }),
+      ],
+      [supplier({ id: "sup_now", leadTimeDays: 0 })],
+    );
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0].urgency).toBeGreaterThan(0);
+  });
+
   it("honours the limit", () => {
     const items = Array.from({ length: 5 }, (_, index) =>
       item({ id: `itm_${index}`, sku: `SKU-${index}`, qty: 0 }),

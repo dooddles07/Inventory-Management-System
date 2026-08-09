@@ -85,6 +85,7 @@ working in memory and say so in a banner, rather than looking like they saved.
 | [API.md](docs/API.md) | The repository contract and the route surface |
 | [DESIGN.md](docs/DESIGN.md) | Interface and copy decisions |
 | [DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) | Colour roles, contrast ratios, type |
+| [SECURITY.md](docs/SECURITY.md) | Threat model, headers, data handling, reporting |
 | [CHANGELOG.md](docs/CHANGELOG.md) | What changed, and why |
 
 ## Design

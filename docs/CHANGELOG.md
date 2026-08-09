@@ -23,6 +23,8 @@ versions follow [semantic versioning](https://semver.org/spec/v2.0.0.html).
   replaces the app shell and the reset button along with it.
 
 - Tabs stay in step through the `storage` event instead of waiting for a reload.
+- `SECURITY.md`: threat model, headers, data handling, dependency policy, and how to
+  report something privately.
 
 ### Fixed
 
@@ -33,6 +35,9 @@ versions follow [semantic versioning](https://semver.org/spec/v2.0.0.html).
   in-memory copy is all that exists.
 - `updateItem` accepted an `id` inside its patch that was then silently overridden. The
   type no longer allows it.
+- **A same-day supplier erased a shortage.** Urgency multiplies shortfall by lead time, so
+  a zero-day supplier, or a part sitting exactly on its reorder point with no safety stock,
+  scored zero and sank below parts in better shape. Both factors are floored at one.
 - **A stored snapshot shaped right but holding junk reached the screens.** `isSnapshot`
   only checked that the three collections were arrays, so an item missing its numbers threw
   the parts page to the error boundary and put `NaN` on the overview - and because the
