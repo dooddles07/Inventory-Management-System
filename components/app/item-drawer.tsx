@@ -69,6 +69,7 @@ export function ItemDrawer({
   const [moveQty, setMoveQty] = useState("");
   const [moveRef, setMoveRef] = useState("");
   const [moveError, setMoveError] = useState<string | null>(null);
+  const [moveNote, setMoveNote] = useState<string | null>(null);
 
   // Reset when the drawer opens on a different part, adjusting state during render
   // rather than from an effect so the form never paints with the previous part's values.
@@ -81,6 +82,7 @@ export function ItemDrawer({
     setMoveQty("");
     setMoveRef("");
     setMoveError(null);
+    setMoveNote(null);
   }
 
   const set = (patch: Partial<FormState>) => setForm((current) => ({ ...current, ...patch }));
@@ -139,6 +141,7 @@ export function ItemDrawer({
   async function record(type: MovementType, sign: 1 | -1) {
     const amount = Math.round(Number(moveQty));
     if (!item) return;
+    setMoveNote(null);
     if (!Number.isFinite(amount) || amount <= 0) {
       setMoveError("Enter how many units to move.");
       return;
@@ -149,6 +152,12 @@ export function ItemDrawer({
     }
     setMoveError(null);
     await adjust({ itemId: item.id, type, qty: amount * sign, reference: moveRef });
+
+    // The count above changes, which is enough on screen but says nothing out loud.
+    const moved = `${formatUnits(amount)} ${item.uom}`;
+    setMoveNote(
+      type === "receipt" ? `Received ${moved}.` : `Picked ${moved}.`,
+    );
     setMoveQty("");
     setMoveRef("");
   }
@@ -236,11 +245,18 @@ export function ItemDrawer({
                 ))}
               </div>
             </div>
-            {moveError && (
-              <p role="alert" className="mt-2 text-[0.75rem] text-out">
+            {/*
+              Both regions stay mounted. A live region that appears at the same moment as
+              its content is not reliably announced; an empty one that fills up is.
+            */}
+            <div className="mt-2 min-h-4 text-[0.75rem]">
+              <p role="alert" className="text-out">
                 {moveError}
               </p>
-            )}
+              <p role="status" className="text-ok">
+                {moveNote}
+              </p>
+            </div>
           </section>
         )}
 

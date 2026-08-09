@@ -177,9 +177,21 @@ What that took, beyond the contrast work:
   unmounts, which the drawer defeats by staying mounted through its exit animation, so the
   components restore focus themselves.
 
-axe does not catch either of those: a missing skip link is not a violation, and focus
-restoration is behaviour rather than markup. Both came out of walking the app with the
-keyboard, and both are covered by `e2e/keyboard.spec.ts` now.
+- Two live regions, and only two. Filtering the table announces how many parts are left,
+  and recording a movement says what was received or picked. Both stay mounted while
+  empty, because a live region that appears at the same moment as its content is not
+  reliably announced.
+
+axe does not catch any of those: a missing skip link is not a violation, and focus
+restoration and announcements are behaviour rather than markup. They came out of walking
+the app with the keyboard, and they are covered by `e2e/keyboard.spec.ts` and
+`e2e/resilience.spec.ts` now.
+
+**What deliberately does not announce.** The overview readouts tick silently, and so does
+the attention badge on the rail. Both are summaries of figures already on the page; a
+screen reader reading them aloud on every change would be noise, not information. The
+filter count and the movement confirmation are the two cases where the interface changed
+and nothing else said so.
 
 ## Responsive
 

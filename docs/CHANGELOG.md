@@ -17,8 +17,18 @@ versions follow [semantic versioning](https://semver.org/spec/v2.0.0.html).
 - CI status badge and a live link in the README.
 
 - **A skip link** on both surfaces, past nine navigation stops into the page content.
+- Live regions where the interface changed silently: the parts table announces how many
+  parts a filter left, and recording a movement says what was received or picked.
+- An escape hatch on the error page that clears the stored snapshot, since that page
+  replaces the app shell and the reset button along with it.
 
 ### Fixed
+
+- **A stored snapshot shaped right but holding junk reached the screens.** `isSnapshot`
+  only checked that the three collections were arrays, so an item missing its numbers threw
+  the parts page to the error boundary and put `NaN` on the overview - and because the
+  error page replaces the top bar, "Try again" re-read the same bad data forever. Every row
+  is validated now, and anything failing falls back to a fresh seed.
 
 - **Closing a dialog left focus on the document body** instead of the control that opened
   it, so a keyboard user was thrown to the top of the page every time. Radix restores

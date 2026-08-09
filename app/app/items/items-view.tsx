@@ -171,6 +171,15 @@ function ItemsTable() {
         </Button>
       </div>
 
+      {/*
+        Filtering changes the table silently. This is the only feedback a screen reader
+        gets, and it deliberately does not repeat the empty state's wording - hearing the
+        same sentence twice is worse than hearing it once.
+      */}
+      <p aria-live="polite" className="sr-only">
+        {table.total === 0 ? "No parts match." : `${formatUnits(table.total)} parts match.`}
+      </p>
+
       {selected.size > 0 && (
         <div className="flex items-center gap-3 rounded-sm border border-blue-500 bg-blue-50 px-4 py-2.5">
           <p className="text-[0.875rem] text-ink-900">

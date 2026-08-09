@@ -78,6 +78,39 @@ describe("loading", () => {
     expect(Array.isArray(snapshot.items)).toBe(true);
     expect(snapshot.items.length).toBeGreaterThan(0);
   });
+
+  // Shaped right, junk inside. This used to reach the screens: the parts page threw to the
+  // error boundary and the overview rendered NaN.
+  const JUNK: Array<[string, unknown]> = [
+    ["an item missing its numbers", { items: [{ id: "i", sku: "X", name: "n", bin: "A-01-01" }], suppliers: [], movements: [] }],
+    ["an item with a string quantity", { items: [{ id: "i", sku: "X", name: "n", category: "c", supplierId: "s", uom: "ea", bin: "A-01-01", updatedAt: "t", qty: "40", reorderPoint: 1, safetyStock: 1, unitCost: 1 }], suppliers: [], movements: [] }],
+    ["a cost that is not a number", { items: [{ id: "i", sku: "X", name: "n", category: "c", supplierId: "s", uom: "ea", bin: "A-01-01", updatedAt: "t", qty: 1, reorderPoint: 1, safetyStock: 1, unitCost: Number.NaN }], suppliers: [], movements: [] }],
+    ["null rows", { items: [null], suppliers: [null], movements: [null] }],
+    ["a supplier with no lead time", { items: [], suppliers: [{ id: "s", name: "n", code: "c", country: "GB", contact: "x" }], movements: [] }],
+    ["a movement with no quantity", { items: [], suppliers: [], movements: [{ id: "m", itemId: "i", type: "receipt", reference: "r", at: "t", by: "you" }] }],
+  ];
+
+  for (const [label, stored] of JUNK) {
+    it(`reseeds rather than serving ${label}`, async () => {
+      storage.seedRaw("stockroom:snapshot:v1", JSON.stringify(stored));
+      const snapshot = await new LocalInventoryRepository().load();
+
+      expect(snapshot.items.length).toBeGreaterThan(1);
+      expect(snapshot.items.every((item) => Number.isFinite(item.qty))).toBe(true);
+      expect(snapshot.items.every((item) => Number.isFinite(item.unitCost))).toBe(true);
+    });
+  }
+
+  it("keeps a snapshot that is genuinely valid", async () => {
+    const first = new LocalInventoryRepository();
+    const seeded = await first.load();
+    const created = await first.createItem(draft({ sku: "KEEP-ME" }));
+
+    // A second repository reads what the first wrote, rather than starting over.
+    const second = await new LocalInventoryRepository().load();
+    expect(second.items.some((item) => item.id === created.id)).toBe(true);
+    expect(second.items.length).toBe(seeded.items.length + 1);
+  });
 });
 
 describe("createItem", () => {

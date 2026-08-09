@@ -1,16 +1,84 @@
 import { createSeedSnapshot } from "./seed";
 import type { AdjustRequest, InventoryRepository } from "./repository";
-import type { InventorySnapshot, Item, ItemDraft, Movement } from "./types";
+import type { InventorySnapshot, Item, ItemDraft, Movement, Supplier } from "./types";
 
-const STORAGE_KEY = "stockroom:snapshot:v1";
+export const STORAGE_KEY = "stockroom:snapshot:v1";
 
-function isSnapshot(value: unknown): value is InventorySnapshot {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<InventorySnapshot>;
+/** Wipes the stored snapshot. The escape hatch for a browser holding something unusable. */
+export function clearStoredSnapshot(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Nothing useful to do if storage refuses a delete.
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isItem(value: unknown): value is Item {
+  if (!isRecord(value)) return false;
   return (
-    Array.isArray(candidate.items) &&
-    Array.isArray(candidate.suppliers) &&
-    Array.isArray(candidate.movements)
+    typeof value.id === "string" &&
+    typeof value.sku === "string" &&
+    typeof value.name === "string" &&
+    typeof value.category === "string" &&
+    typeof value.supplierId === "string" &&
+    typeof value.uom === "string" &&
+    typeof value.bin === "string" &&
+    typeof value.updatedAt === "string" &&
+    Number.isFinite(value.qty) &&
+    Number.isFinite(value.reorderPoint) &&
+    Number.isFinite(value.safetyStock) &&
+    Number.isFinite(value.unitCost)
+  );
+}
+
+function isSupplier(value: unknown): value is Supplier {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === "string" &&
+    typeof value.name === "string" &&
+    typeof value.code === "string" &&
+    typeof value.country === "string" &&
+    typeof value.contact === "string" &&
+    Number.isFinite(value.leadTimeDays)
+  );
+}
+
+function isMovement(value: unknown): value is Movement {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === "string" &&
+    typeof value.itemId === "string" &&
+    typeof value.type === "string" &&
+    typeof value.reference === "string" &&
+    typeof value.at === "string" &&
+    typeof value.by === "string" &&
+    Number.isFinite(value.qty)
+  );
+}
+
+/**
+ * Checks every row, not just the three collections.
+ *
+ * A snapshot that is shaped right but holds junk used to sail through: the parts page
+ * threw to the error boundary, which replaces the app shell and the reset button with it,
+ * and the overview rendered NaN. Anything that fails here falls back to a fresh seed,
+ * which is the honest outcome for a disposable demo dataset - partial recovery would only
+ * mean carrying half a warehouse forward without saying so.
+ */
+function isSnapshot(value: unknown): value is InventorySnapshot {
+  if (!isRecord(value)) return false;
+  return (
+    Array.isArray(value.items) &&
+    Array.isArray(value.suppliers) &&
+    Array.isArray(value.movements) &&
+    value.items.every(isItem) &&
+    value.suppliers.every(isSupplier) &&
+    value.movements.every(isMovement)
   );
 }
 

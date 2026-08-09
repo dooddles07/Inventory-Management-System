@@ -19,9 +19,15 @@ Types are in [`lib/inventory/types.ts`](../lib/inventory/types.ts).
 The `v1` suffix is the migration hatch. A future shape becomes `v2` and the reader falls
 back to a fresh seed rather than trying to upgrade a demo dataset.
 
-Anything unreadable - absent, unparseable, or the wrong shape - falls back to a fresh
-seed instead of failing. `isSnapshot()` checks that all three collections are arrays; it
-is a shape guard, not a validator, which is honest for a store only this app writes to.
+Anything unreadable - absent, unparseable, the wrong shape, or holding a row that fails
+validation - falls back to a fresh seed instead of failing. `isSnapshot()` checks every
+row, not just that the three collections are arrays.
+
+That is stricter than it first was, and for a reason. A snapshot shaped right but holding
+junk used to sail through: the parts page threw to the error boundary, which replaces the
+app shell and the reset button with it, and the overview rendered `NaN` on screen. Falling
+back wholesale rather than dropping bad rows is deliberate - partial recovery would carry
+half a warehouse forward without saying so, and this dataset is disposable by design.
 
 ## Entities
 
