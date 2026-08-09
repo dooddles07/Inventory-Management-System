@@ -14,7 +14,7 @@ const PLANS = [
       "Movement history",
       "One person",
     ],
-    cta: "Start with this",
+    cta: "Choose Shelf",
     featured: false,
   },
   {
@@ -29,7 +29,7 @@ const PLANS = [
       "Cycle counts and count sheets",
       "CSV import and export",
     ],
-    cta: "Start with this",
+    cta: "Choose Warehouse",
     featured: true,
   },
   {
@@ -44,7 +44,7 @@ const PLANS = [
       "API access",
       "Audit export",
     ],
-    cta: "Start with this",
+    cta: "Choose Multi-site",
     featured: false,
   },
 ];
@@ -59,6 +59,10 @@ export function Pricing() {
         <p className="mt-4 max-w-xl text-[1.0625rem] leading-relaxed text-ink-700">
           A stockroom that grows should not cost more to keep track of. Change plan or
           cancel whenever; nothing is locked in.
+        </p>
+        <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-ink-500">
+          Stockroom is a portfolio project, so none of this bills you. All three buttons
+          open the same demo, with everything switched on.
         </p>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">

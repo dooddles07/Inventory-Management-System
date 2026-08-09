@@ -18,6 +18,16 @@ Open http://localhost:3000. The app seeds itself on first load and stores everyt
 
 Other scripts: `npm run build`, `npm run typecheck`, `npm run lint`.
 
+## Deploying
+
+Set `NEXT_PUBLIC_SITE_URL` to the public origin, with no trailing slash. It is what
+`metadataBase`, the OpenGraph and Twitter cards, `robots.txt` and `sitemap.xml` are built
+from, so link previews point at the wrong host without it. See `.env.example`.
+
+Every route prerenders static, so any Node host or static-capable platform will serve it.
+`next.config.ts` sends the security headers, including a content security policy that
+matches what the app actually loads: itself, and nothing else.
+
 ## What is in the box
 
 - **Overview** - stock value, units on hand, what needs restocking, recent movements
@@ -42,6 +52,9 @@ today, and swapping it for a network one changes one line in the provider.
 
 The seed is deterministic (fixed PRNG seed, fixed timestamp anchor), so the server and
 the client render the same snapshot.
+
+Writes that fail to reach `localStorage` - a full quota, or private browsing - keep
+working in memory and say so in a banner, rather than looking like they saved.
 
 ## Design
 

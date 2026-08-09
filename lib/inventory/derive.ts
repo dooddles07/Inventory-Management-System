@@ -32,7 +32,6 @@ export interface Totals {
   stockValue: number;
   low: number;
   out: number;
-  binsUsed: number;
 }
 
 export function totals(items: Item[]): Totals {
@@ -49,14 +48,7 @@ export function totals(items: Item[]): Totals {
     if (status === "out") out += 1;
   }
 
-  return {
-    skus: items.length,
-    unitsOnHand,
-    stockValue,
-    low,
-    out,
-    binsUsed: new Set(items.map((item) => item.bin)).size,
-  };
+  return { skus: items.length, unitsOnHand, stockValue, low, out };
 }
 
 export interface ReorderLine {
@@ -98,35 +90,6 @@ export function reorderQueue(items: Item[], suppliers: Supplier[], limit?: numbe
     .sort((a, b) => b.urgency - a.urgency || a.item.name.localeCompare(b.item.name));
 
   return limit ? lines.slice(0, limit) : lines;
-}
-
-export interface CategoryRollup {
-  category: string;
-  skus: number;
-  units: number;
-  value: number;
-  low: number;
-}
-
-export function byCategory(items: Item[]): CategoryRollup[] {
-  const map = new Map<string, CategoryRollup>();
-
-  for (const item of items) {
-    const row = map.get(item.category) ?? {
-      category: item.category,
-      skus: 0,
-      units: 0,
-      value: 0,
-      low: 0,
-    };
-    row.skus += 1;
-    row.units += item.qty;
-    row.value += lineValue(item);
-    if (statusOf(item) !== "ok") row.low += 1;
-    map.set(item.category, row);
-  }
-
-  return [...map.values()].sort((a, b) => b.value - a.value);
 }
 
 /** Units moved per day over the trailing window, oldest first. Drives the sparkline. */

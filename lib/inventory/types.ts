@@ -4,14 +4,6 @@ export type MovementType = "receipt" | "issue" | "adjustment" | "transfer" | "co
 
 export type StockStatus = "ok" | "low" | "out";
 
-/** Bin addresses are aisle-rack-shelf, e.g. "C-04-12". They encode a real location. */
-export interface Bin {
-  code: string;
-  aisle: string;
-  rack: number;
-  shelf: number;
-}
-
 export interface Supplier {
   id: string;
   name: string;

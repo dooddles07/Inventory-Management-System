@@ -23,9 +23,11 @@ export function Ticker({ value, format = (n) => String(Math.round(n)), className
     const controls = animate(previous.current, value, {
       duration: 0.7,
       ease: [0.22, 1, 0.36, 1],
-      onUpdate: (latest) => setShown(latest),
-      onComplete: () => {
-        previous.current = value;
+      onUpdate: (latest) => {
+        // Tracked on the ref as well: an interrupted run has to resume from what is on
+        // screen, not from the origin the stopped animation started at.
+        previous.current = latest;
+        setShown(latest);
       },
     });
     return () => controls.stop();

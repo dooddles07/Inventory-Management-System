@@ -57,7 +57,8 @@ export function SiteFooter() {
 
         {COLUMNS.map((column) => (
           <nav key={column.heading} aria-label={column.heading}>
-            <h2 className="type-meta text-[0.625rem] text-on-navy-muted">{column.heading}</h2>
+            {/* The nav is already named by aria-label, so this stays out of the heading outline. */}
+            <p className="type-meta text-[0.625rem] text-on-navy-muted">{column.heading}</p>
             <ul className="mt-3 space-y-2">
               {column.links.map((link) => (
                 <li key={link.href}>

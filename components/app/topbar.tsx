@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/drawer";
 import { cn } from "@/lib/cn";
 import { statusOf } from "@/lib/inventory/derive";
 import { formatUnits } from "@/lib/format";
@@ -20,6 +21,7 @@ export function Topbar() {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
+  const [confirmReset, setConfirmReset] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
 
@@ -161,17 +163,23 @@ export function Topbar() {
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => {
-          if (window.confirm("Reset all parts and movements back to the sample data?")) {
-            void resetToSeed();
-          }
-        }}
+        onClick={() => setConfirmReset(true)}
         title="Restore the sample warehouse"
         className="shrink-0"
       >
         <RotateCcw size={15} strokeWidth={2} aria-hidden="true" />
         <span className="hidden sm:inline">Reset data</span>
       </Button>
+
+      <ConfirmDialog
+        open={confirmReset}
+        onOpenChange={setConfirmReset}
+        title="Reset to the sample warehouse?"
+        body="Every part you have added, edited or deleted goes back to how it started, and the movements you recorded are cleared."
+        confirmLabel="Reset everything"
+        cancelLabel="Cancel"
+        onConfirm={() => void resetToSeed()}
+      />
     </header>
   );
 }

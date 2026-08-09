@@ -18,13 +18,34 @@ const martian = Martian_Mono({
   variable: "--font-martian",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+const TITLE = "Stockroom - inventory tracking for small warehouses";
+const DESCRIPTION =
+  "Give every part a bin number, see what is running low, and find anything on the floor map.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Stockroom - inventory tracking for small warehouses",
+    default: TITLE,
     template: "%s - Stockroom",
   },
-  description:
-    "Give every part a bin number, see what is running low, and find anything on the floor map.",
+  description: DESCRIPTION,
+  applicationName: "Stockroom",
+  manifest: "/manifest.webmanifest",
+  openGraph: {
+    type: "website",
+    siteName: "Stockroom",
+    title: TITLE,
+    description: DESCRIPTION,
+    url: SITE_URL,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 export const viewport: Viewport = {

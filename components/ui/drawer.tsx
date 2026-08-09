@@ -93,6 +93,7 @@ export function ConfirmDialog({
   title,
   body,
   confirmLabel,
+  cancelLabel = "Keep it",
   onConfirm,
 }: {
   open: boolean;
@@ -100,6 +101,8 @@ export function ConfirmDialog({
   title: string;
   body: string;
   confirmLabel: string;
+  /** "Keep it" suits a delete. Anything else destructive should say what backing out means. */
+  cancelLabel?: string;
   onConfirm: () => void;
 }) {
   return (
@@ -113,7 +116,7 @@ export function ConfirmDialog({
           </Dialog.Description>
           <div className="mt-5 flex justify-end gap-2">
             <Dialog.Close className="inline-flex h-9 cursor-pointer items-center rounded-sm border border-line-strong px-4 text-[0.875rem] font-medium text-ink-900 transition-colors duration-150 hover:bg-blue-50">
-              Keep it
+              {cancelLabel}
             </Dialog.Close>
             <button
               type="button"

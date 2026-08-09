@@ -152,15 +152,6 @@
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
   }
-
-  /* Thermal label edge - the perforated tear line on printed stock */
-  .tear-edge {
-    --tear: 5px;
-    mask-image: radial-gradient(circle var(--tear) at 0 50%, transparent 98%, #000 100%),
-      radial-gradient(circle var(--tear) at 100% 50%, transparent 98%, #000 100%);
-    mask-composite: intersect;
-    -webkit-mask-composite: source-in;
-  }
 }
 
 @keyframes bin-in {

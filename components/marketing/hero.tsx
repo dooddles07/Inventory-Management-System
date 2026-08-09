@@ -5,7 +5,7 @@ import { FloorMap } from "./floor-map";
 
 interface HeroProps {
   floor: FloorAisle[];
-  stats: { skus: number; binsUsed: number; totalBins: number; belowReorder: number };
+  stats: { skus: number; totalBins: number; belowReorder: number };
 }
 
 export function Hero({ floor, stats }: HeroProps) {
@@ -45,13 +45,13 @@ export function Hero({ floor, stats }: HeroProps) {
             </strong>{" "}
             parts across{" "}
             <strong className="type-data font-medium text-on-navy" data-numeric>
-              {formatUnits(stats.binsUsed)}
+              {formatUnits(stats.totalBins)}
             </strong>{" "}
             bins.{" "}
             <strong className="type-data font-medium text-blue-300" data-numeric>
               {formatUnits(stats.belowReorder)}
             </strong>{" "}
-            of them need restocking today.
+            of those parts are at or below their reorder point.
           </p>
         </div>
 

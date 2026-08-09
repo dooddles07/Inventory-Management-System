@@ -4,17 +4,11 @@ const money = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
-const moneyPrecise = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-});
-
 const units = new Intl.NumberFormat("en-US");
 
 /** Minor units in, display string out. */
-export function formatMoney(minor: number, precise = false): string {
-  return (precise ? moneyPrecise : money).format(minor / 100);
+export function formatMoney(minor: number): string {
+  return money.format(minor / 100);
 }
 
 export function formatCompactMoney(minor: number): string {

@@ -121,7 +121,8 @@ export function RestockProof({ queue }: { queue: ReorderLine[] }) {
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:py-20">
         <div className="order-2 overflow-hidden rounded-md border border-line bg-surface shadow-card lg:order-1">
           <div className="border-b border-line px-4 py-3">
-            <h3 className="type-title text-[0.9375rem] text-ink-900">Needs restocking</h3>
+            {/* A panel label, not a section: the h2 for this block sits in the column beside it. */}
+            <p className="type-title text-[0.9375rem] text-ink-900">Needs restocking</p>
             <p className="mt-0.5 text-[0.8125rem] text-ink-500">Most urgent first</p>
           </div>
           <ul className="divide-y divide-line">

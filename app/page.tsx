@@ -24,7 +24,6 @@ export default function MarketingPage() {
           floor={buildFloor(snapshot.items)}
           stats={{
             skus: summary.skus,
-            binsUsed: summary.binsUsed,
             totalBins: allBins().length,
             belowReorder: snapshot.items.filter((item) => statusOf(item) !== "ok").length,
           }}

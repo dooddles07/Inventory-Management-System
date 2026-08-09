@@ -29,6 +29,7 @@ function nextId(prefix: string, existing: Array<{ id: string }>): string {
  */
 export class LocalInventoryRepository implements InventoryRepository {
   private cache: InventorySnapshot | null = null;
+  private persisting = true;
 
   private read(): InventorySnapshot {
     if (this.cache) return this.cache;
@@ -61,9 +62,16 @@ export class LocalInventoryRepository implements InventoryRepository {
     if (typeof window === "undefined") return;
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+      this.persisting = true;
     } catch {
-      // Quota or private-mode failures leave the in-memory cache authoritative for the session.
+      // Quota or private mode. The cache stays authoritative so the session keeps working,
+      // and the flag lets the app say so instead of pretending the save landed.
+      this.persisting = false;
     }
+  }
+
+  isPersisting(): boolean {
+    return this.persisting;
   }
 
   async load(): Promise<InventorySnapshot> {
@@ -117,9 +125,13 @@ export class LocalInventoryRepository implements InventoryRepository {
     const at = new Date().toISOString();
     const isTransfer = request.type === "transfer";
 
+    // Stock cannot go below zero, and the movement has to record what was actually applied.
+    // Logging the requested amount instead would leave the history unable to reconcile.
+    const delta = isTransfer ? 0 : Math.max(request.qty, -current.qty);
+
     const item: Item = {
       ...current,
-      qty: Math.max(0, current.qty + (isTransfer ? 0 : request.qty)),
+      qty: current.qty + delta,
       bin: isTransfer && request.toBin ? request.toBin : current.bin,
       updatedAt: at,
     };
@@ -128,7 +140,7 @@ export class LocalInventoryRepository implements InventoryRepository {
       id: nextId("mov", snapshot.movements),
       itemId: item.id,
       type: request.type,
-      qty: isTransfer ? 0 : request.qty,
+      qty: delta,
       fromBin: isTransfer ? current.bin : undefined,
       toBin: isTransfer ? item.bin : undefined,
       reference: request.reference?.trim() || "MANUAL",

@@ -21,3 +21,6 @@ eslint-report.json
 
 # Working notes, not part of the shipped project
 docs/ACTIVITY-LOG.md
+
+# Editor and agent config, not project code
+.claude/

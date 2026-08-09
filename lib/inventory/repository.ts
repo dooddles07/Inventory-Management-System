@@ -20,4 +20,6 @@ export interface InventoryRepository {
   deleteItems(ids: string[]): Promise<void>;
   adjust(request: AdjustRequest): Promise<{ item: Item; movement: Movement }>;
   reset(): Promise<InventorySnapshot>;
+  /** False once a write has failed to reach durable storage and is only held in memory. */
+  isPersisting(): boolean;
 }

@@ -18,7 +18,8 @@ type Action =
   | { kind: "loaded"; snapshot: InventorySnapshot }
   | { kind: "items"; items: Item[] }
   | { kind: "snapshot"; snapshot: InventorySnapshot }
-  | { kind: "failed"; message: string };
+  | { kind: "failed"; message: string }
+  | { kind: "dismissed" };
 
 interface State {
   snapshot: InventorySnapshot;
@@ -38,6 +39,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, snapshot: { ...state.snapshot, items: action.items }, error: null };
     case "failed":
       return { ...state, error: action.message };
+    case "dismissed":
+      return { ...state, error: null };
   }
 }
 
@@ -47,6 +50,7 @@ interface InventoryValue extends State {
   deleteItems: (ids: string[]) => Promise<void>;
   adjust: (request: AdjustRequest) => Promise<void>;
   resetToSeed: () => Promise<void>;
+  dismissError: () => void;
 }
 
 const InventoryContext = createContext<InventoryValue | null>(null);
@@ -69,7 +73,9 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         if (!cancelled) dispatch({ kind: "loaded", snapshot });
       })
       .catch(() => {
-        if (!cancelled) dispatch({ kind: "failed", message: "Could not read local inventory." });
+        if (!cancelled) {
+          dispatch({ kind: "failed", message: "Could not read what this browser had stored." });
+        }
       });
     return () => {
       cancelled = true;
@@ -79,6 +85,14 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     const snapshot = await repository.load();
     dispatch({ kind: "snapshot", snapshot });
+    // A write that only reached memory is worth saying out loud: the tab is now the only copy.
+    if (!repository.isPersisting()) {
+      dispatch({
+        kind: "failed",
+        message:
+          "This browser is not storing your changes, so they will be lost when the tab closes. Storage is full, or private browsing is blocking it.",
+      });
+    }
   }, [repository]);
 
   const createItem = useCallback(
@@ -87,7 +101,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         await repository.createItem(draft);
         await refresh();
       } catch {
-        dispatch({ kind: "failed", message: "Could not save the new item." });
+        dispatch({ kind: "failed", message: "Could not save the new part." });
       }
     },
     [repository, refresh],
@@ -111,7 +125,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         await repository.deleteItems(ids);
         await refresh();
       } catch {
-        dispatch({ kind: "failed", message: "Could not delete those items." });
+        dispatch({ kind: "failed", message: "Could not delete those parts." });
       }
     },
     [repository, refresh],
@@ -130,13 +144,19 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   );
 
   const resetToSeed = useCallback(async () => {
-    const snapshot = await repository.reset();
-    dispatch({ kind: "snapshot", snapshot });
+    try {
+      const snapshot = await repository.reset();
+      dispatch({ kind: "snapshot", snapshot });
+    } catch {
+      dispatch({ kind: "failed", message: "Could not restore the sample warehouse." });
+    }
   }, [repository]);
 
+  const dismissError = useCallback(() => dispatch({ kind: "dismissed" }), []);
+
   const value = useMemo<InventoryValue>(
-    () => ({ ...state, createItem, updateItem, deleteItems, adjust, resetToSeed }),
-    [state, createItem, updateItem, deleteItems, adjust, resetToSeed],
+    () => ({ ...state, createItem, updateItem, deleteItems, adjust, resetToSeed, dismissError }),
+    [state, createItem, updateItem, deleteItems, adjust, resetToSeed, dismissError],
   );
 
   return <InventoryContext.Provider value={value}>{children}</InventoryContext.Provider>;
