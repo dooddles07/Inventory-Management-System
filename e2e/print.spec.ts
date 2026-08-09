@@ -51,6 +51,27 @@ test.describe("printing a screen", () => {
     await expect(page.getByLabel("Search parts, SKUs and bins")).toBeHidden();
   });
 
+  test("a storage warning is screen furniture, not part of the printout", async ({ page }) => {
+    await openReady(page, "/app/items");
+
+    // Force the banner up by making every write fail.
+    await page.evaluate(() => {
+      Storage.prototype.setItem = function () {
+        const error = new Error("quota");
+        error.name = "QuotaExceededError";
+        throw error;
+      };
+    });
+    await page.locator("tbody tr:first-child td:nth-child(2) button").click();
+    await page.getByRole("dialog").getByRole("button", { name: "Save changes" }).click();
+
+    const banner = page.locator('[data-app-shell] > div > [role="alert"]');
+    await expect(banner).toBeVisible();
+
+    await page.emulateMedia({ media: "print" });
+    await expect(banner).toBeHidden();
+  });
+
   test("the table is not clipped to one screen's worth", async ({ page }) => {
     await openReady(page, "/app/items");
     await page.emulateMedia({ media: "print" });

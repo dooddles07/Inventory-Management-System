@@ -212,10 +212,16 @@
     background: #fff;
   }
 
+  /*
+    The banner is a transient note about this browser, not warehouse data, so it stays off
+    paper whether or not it is showing. It was written as `:empty` first, which matched
+    nothing: the component renders nothing at all when there is no message, and carries
+    text when there is.
+  */
   [data-print-hide],
   [data-app-shell] nav[aria-label="Sections"],
   [data-app-shell] > div > header,
-  [data-app-shell] [role="alert"]:empty {
+  [data-app-shell] > div > [role="alert"] {
     display: none !important;
   }
 

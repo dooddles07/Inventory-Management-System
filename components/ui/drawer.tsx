@@ -11,6 +11,10 @@ import { useEffect, useRef, type ReactNode } from "react";
  * Radix does this itself when its content unmounts, which the drawer defeats: the panel
  * stays mounted through its exit animation, so by the time it goes there is nothing left
  * to restore to and the keyboard lands on the document body.
+ *
+ * This captures on open, which works because Radix moves focus into the panel a tick
+ * later. If that ever changes, the capture would record the panel's close button instead
+ * and closing would go nowhere - `e2e/keyboard.spec.ts` is what would notice.
  */
 function useReturnFocus(open: boolean) {
   const origin = useRef<HTMLElement | null>(null);
