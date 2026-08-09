@@ -25,3 +25,9 @@ docs/ACTIVITY-LOG.md
 
 # Editor and agent config, not project code
 .claude/
+
+# Playwright output
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

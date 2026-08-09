@@ -18,6 +18,21 @@ Open http://localhost:3000. The app seeds itself on first load and stores everyt
 
 Other scripts: `npm run build`, `npm run typecheck`, `npm run lint`.
 
+## Tests
+
+```bash
+npm test        # Vitest over the data layer
+npm run test:e2e  # Playwright over the real flows, on a production build
+```
+
+`lib/**/*.test.ts` covers the pure layer: stock status, reorder urgency, the repository's
+write path, seed determinism, formatting. No jsdom, because none of it touches the DOM.
+
+`e2e/` drives the app the way someone would: adding a part and finding it on the shelf,
+receiving and picking against a reference, refusing a pick larger than the shelf holds,
+the supplier deep link, keyboard movement across the floor map, and a reset that puts
+everything back. The Playwright config builds and starts the app itself.
+
 ## Deploying
 
 Set `NEXT_PUBLIC_SITE_URL` to the public origin, with no trailing slash. It is what
